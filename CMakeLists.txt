@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+include(${CMAKE_CURRENT_SOURCE_DIR}/libs/third/socket.io-client-cpp/CMakeLists.txt)
+add_executable(client ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+set_property(TARGET client PROPERTY CXX_STANDARD 11)
+set_property(TARGET client PROPERTY CXX_STANDARD_REQUIRED ON)
+target_link_libraries(client sioclient)
+target_link_libraries(client pthread )
+message(STATUS ${Boost_INCLUDE_DIRS} )
