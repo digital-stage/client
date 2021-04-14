@@ -1,0 +1,9 @@
+[submodule "JUCE"]
+	path = JUCE
+	url = https://github.com/juce-framework/JUCE.git
+[submodule "api"]
+	path = libds
+	url = https://github.com/digital-stage/api-client.git
+[submodule "libov"]
+	path = libov
+	url = https://github.com/gisogrimm/libov.git
