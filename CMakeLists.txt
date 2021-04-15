@@ -10,7 +10,6 @@ endif (APPLE)
 add_subdirectory(JUCE)
 add_subdirectory(libds)
 
-
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
 add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
@@ -73,7 +72,7 @@ target_compile_definitions(DigitalStage
 # here too. This is a standard CMake command.
 
 target_include_directories(DigitalStage
-    INTERFACE
+        PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/libds/src
     )
 
@@ -86,5 +85,59 @@ target_link_libraries(DigitalStage
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+if(UNIX)
+    # Add ov dependency only on unix like systems
+    add_custom_target(libov
+        SOURCES "${CMAKE_CURRENT_LIST_DIR}/libov/src"
+        DEPENDS 
+            "${CMAKE_CURRENT_LIST_DIR}/libov/build/libov.a"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_delay.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_metronome.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_sndfile.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_jackrec.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_route.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_system.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_touchosc.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_waitforjackport.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_hrtf.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_omni.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_ortf.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_simplefdn.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarsource_cardioidmod.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarsource_omni.dylib"
+        )
+    add_custom_command(
+        OUTPUT 
+            "${CMAKE_CURRENT_LIST_DIR}/libov/build/libov.a"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_delay.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_metronome.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_sndfile.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_jackrec.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_route.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_system.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_touchosc.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascar_waitforjackport.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_hrtf.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_omni.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_ortf.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_simplefdn.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarsource_cardioidmod.dylib"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/plugins/build/ovclienttascarsource_omni.dylib"
+        COMMAND make VERBOSE=1
+        WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libov"
+        DEPENDS "${CMAKE_CURRENT_LIST_DIR}/libov/Makefile"
+        COMMENT "Building OV"
+    )
+    target_include_directories(DigitalStage 
+        PRIVATE 
+            "${CMAKE_CURRENT_LIST_DIR}/libov/src"
+            "${CMAKE_CURRENT_LIST_DIR}/libov/tascar/libtascar/build"
+            )
+    target_link_libraries(DigitalStage
+        PRIVATE
+            "${CMAKE_CURRENT_LIST_DIR}/libov/build/libov.a")
+    add_dependencies(DigitalStage libov)
+endif(UNIX)
 
 juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)

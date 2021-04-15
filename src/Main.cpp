@@ -1,5 +1,9 @@
 #include "ApplicationState.h"
+#include "AuthService.h"
 #include "LoginWindow.h"
+#if JUCE_LINUX || JUCE_MAC
+#include "ov_render_tascar.h"
+#endif
 #include <JuceHeader.h>
 
 #ifndef SIGNUP_URL
