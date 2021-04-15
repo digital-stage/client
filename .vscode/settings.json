@@ -1,5 +1,14 @@
 {
     "files.associations": {
-        "*.mm": "cpp"
+        "*.mm": "cpp",
+        "functional": "cpp",
+        "__config": "cpp",
+        "algorithm": "cpp",
+        "chrono": "cpp",
+        "locale": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "*.tcc": "cpp",
+        "regex": "cpp"
     }
 }

@@ -1,4 +1,18 @@
+#include "ApplicationState.h"
+#include "LoginWindow.h"
 #include <JuceHeader.h>
+
+#ifndef SIGNUP_URL
+#define SIGNUP_URL "https://live.digital-stage.org/auth/signup"
+#endif
+
+#ifndef STAGE_URL
+#define STAGE_URL "https://live.digital-stage.org/stage"
+#endif
+
+#ifndef MIXER_URL
+#define MIXER_URL "https://live.digital-stage.org/mixer"
+#endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
 #include "TaskbarComponent.h"
@@ -24,27 +38,45 @@ public:
   }
   bool moreThanOneInstanceAllowed() override { return true; }
 
+  void onOpenMixerClicked() {}
+  void onOpenStageClicked() {}
+
+  void setApplicationState(ApplicationState value)
+  {
+    state = value;
+    taskbar->setApplicationState(state);
+  }
+
   //==============================================================================
   void initialise(const juce::String& commandLine) override
   {
-    // This method is where you should put your application's initialisation
-    // code..
     juce::ignoreUnused(commandLine);
 
+    loginWindow.reset(new LoginWindow());
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-    taskbar.reset(new TaskbarComponent());
+    taskbar.reset(new TaskbarComponent(state));
+    taskbar->onOpenStageClicked = []() {
+      URL(STAGE_URL).launchInDefaultBrowser();
+    };
+    taskbar->onOpenMixerClicked = []() {
+      URL(MIXER_URL).launchInDefaultBrowser();
+    };
+    taskbar->onSignUpClicked = []() {
+      URL(SIGNUP_URL).launchInDefaultBrowser();
+    };
+    taskbar->onSignInClicked = [&]() { loginWindow->setVisible(true); };
+    taskbar->onSignOutClicked = [&]() { loginWindow->setVisible(true); };
+#else
+    loginWindow->setVisible(true);
 #endif
-    // mainWindow.reset(new MainWindow(getApplicationName()));
   }
 
   void shutdown() override
   {
-    // Add your application's shutdown code here..
-
+    loginWindow = nullptr;
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
     taskbar = nullptr;
 #endif
-    // mainWindow = nullptr; // (deletes our window)
   }
 
   //==============================================================================
@@ -65,8 +97,10 @@ public:
   }
 
 private:
+  ApplicationState state = ApplicationState::SIGNED_OUT;
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
   std::unique_ptr<TaskbarComponent> taskbar;
+  std::unique_ptr<LoginWindow> loginWindow;
 #endif
 };
 

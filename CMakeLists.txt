@@ -10,6 +10,11 @@ endif (APPLE)
 add_subdirectory(JUCE)
 add_subdirectory(libds)
 
+
+add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
+add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
+add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
+
 juce_add_gui_app(DigitalStage
     BUNDLE_ID   org.digital-stage.client
     ICON_BIG    ${CMAKE_CURRENT_LIST_DIR}/assets/appicon.png
@@ -34,6 +39,7 @@ target_sources(DigitalStage
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskbarComponent.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginWindow.cpp
         )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
