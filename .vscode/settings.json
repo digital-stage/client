@@ -9,6 +9,7 @@
         "memory": "cpp",
         "random": "cpp",
         "*.tcc": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "iterator": "cpp"
     }
 }

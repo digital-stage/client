@@ -1,9 +1,8 @@
+#include "../assets/utils.h"
 #include "ApplicationState.h"
+#include "ApplicationStore.h"
 #include "AuthService.h"
 #include "LoginWindow.h"
-#if JUCE_LINUX || JUCE_MAC
-#include "ov_render_tascar.h"
-#endif
 #include <JuceHeader.h>
 
 #ifndef SIGNUP_URL
@@ -42,9 +41,6 @@ public:
   }
   bool moreThanOneInstanceAllowed() override { return true; }
 
-  void onOpenMixerClicked() {}
-  void onOpenStageClicked() {}
-
   void setApplicationState(ApplicationState value)
   {
     state = value;
@@ -56,6 +52,13 @@ public:
   {
     juce::ignoreUnused(commandLine);
 
+    // Show splashscreen first
+    juce::SplashScreen* splashScreen = new juce::SplashScreen(
+        ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
+    splashScreen->setVisible(true);
+
+    // Init UI
+    authService.reset(new DigitalStage::AuthService(AUTH_URL));
     loginWindow.reset(new LoginWindow());
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
     taskbar.reset(new TaskbarComponent(state));
@@ -73,11 +76,34 @@ public:
 #else
     loginWindow->setVisible(true);
 #endif
+
+    // Check if user is signed in
+    store.reset(new ApplicationStore(getApplicationName()));
+    const juce::String token = store->getUserSettings()->getValue("token", "");
+    if(token.length() > 0 &&
+       authService->verifyTokenSync(token.toStdString())) {
+      // Signed in
+    } else {
+      // Show login panel
+      loginWindow->setVisible(true);
+    }
+
+    loginWindow->onSubmit = [&](juce::String email, juce::String password) {
+      const auto requestedToken =
+          authService->signInSync(email.toStdString(), password.toStdString());
+      if(token.length() > 0) {
+        store->getUserSettings()->setValue("token",
+                                           juce::String(requestedToken));
+      }
+    };
+
+    splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(2), false);
   }
 
   void shutdown() override
   {
     loginWindow = nullptr;
+    store = nullptr;
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
     taskbar = nullptr;
 #endif
@@ -101,7 +127,12 @@ public:
   }
 
 private:
+  // Business logic parts
+  std::unique_ptr<DigitalStage::AuthService> authService;
   ApplicationState state = ApplicationState::SIGNED_OUT;
+  std::unique_ptr<ApplicationStore> store;
+
+  // UI components
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
   std::unique_ptr<TaskbarComponent> taskbar;
   std::unique_ptr<LoginWindow> loginWindow;

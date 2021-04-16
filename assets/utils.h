@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <iostream>
 
 inline File getExamplesDirectory() noexcept
 {
@@ -25,10 +26,10 @@ inline File getExamplesDirectory() noexcept
 
   // keep track of the number of parent directories so we don't go on endlessly
   for(int numTries = 0; numTries < 15; ++numTries) {
-    if(currentFile.getFileName() == "examples")
+    if(currentFile.getFileName() == "assets")
       return currentFile;
 
-    const auto sibling = currentFile.getSiblingFile("examples");
+    const auto sibling = currentFile.getSiblingFile("assets");
 
     if(sibling.exists())
       return sibling;
@@ -38,6 +39,13 @@ inline File getExamplesDirectory() noexcept
 
   return currentFile;
 #endif
+}
+
+inline File getRootDirectory()
+{
+  auto currentFile = File::getSpecialLocation(
+      File::SpecialLocationType::currentApplicationFile);
+  return currentFile.getParentDirectory();
 }
 
 inline std::unique_ptr<InputStream>
@@ -51,21 +59,23 @@ createAssetInputStream(const char* resourcePath)
 #if JUCE_IOS
   auto assetsDir = File::getSpecialLocation(File::currentExecutableFile)
                        .getParentDirectory()
-                       .getChildFile("Assets");
+                       .getChildFile("assets");
 #elif JUCE_MAC
   auto assetsDir = File::getSpecialLocation(File::currentExecutableFile)
                        .getParentDirectory()
                        .getParentDirectory()
                        .getChildFile("Resources")
-                       .getChildFile("Assets");
+                       .getChildFile("assets");
 
-  if(!assetsDir.exists())
-    assetsDir = getExamplesDirectory().getChildFile("Assets");
+  if(!assetsDir.exists()) {
+    assetsDir = getRootDirectory().getChildFile("assets");
+  }
 #else
-  auto assetsDir = getExamplesDirectory().getChildFile("Assets");
+  auto assetsDir = getRootDirectory().getChildFile("assets");
 #endif
 
   auto resourceFile = assetsDir.getChildFile(resourcePath);
+
   jassert(resourceFile.existsAsFile());
 
   return resourceFile.createInputStream();
@@ -74,7 +84,7 @@ createAssetInputStream(const char* resourcePath)
 
 inline Image getImageFromAssets(const char* assetName)
 {
-  auto hashCode = (String(assetName) + "@juce_demo_assets").hashCode64();
+  auto hashCode = (String(assetName) + "@assets").hashCode64();
   auto img = ImageCache::getFromHashCode(hashCode);
 
   if(img.isNull()) {
