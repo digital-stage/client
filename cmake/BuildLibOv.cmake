@@ -20,7 +20,7 @@ add_custom_command(
     OUTPUT 
         ${CMAKE_CURRENT_SOURCE_DIR}/libov/build/libov.a
         ${TASCAR_PLUGINS}
-    COMMAND make VERBOSE=1 ARCH=${CMAKE_SYSTEM_PROCESSOR}
+    COMMAND make VERBOSE=1 ARCH=${CMAKE_SYSTEM_PROCESSOR} -j${CMAKE_BUILD_PARALLEL_LEVEL}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libov
     COMMENT "Building OV"
     VERBATIM
@@ -35,17 +35,16 @@ add_custom_target(libov
 if(APPLE)
     foreach (TASCAR_PLUGIN IN LISTS TASCAR_PLUGINS)
         string(REGEX MATCH "([^\/]+\.dylib)$" TASCAR_PLUGIN_NAME ${TASCAR_PLUGIN})
-        add_custom_command(TARGET libov PRE_LINK
-                COMMAND
-                ${CMAKE_INSTALL_NAME_TOOL}
-                -change
-                "build/${TASCAR_PLUGIN_NAME}"
-                "@rpath/${TASCAR_PLUGIN_NAME}.dylib"
-                ${TASCAR_PLUGIN}
-                COMMENT "Fixing ${TASCAR_PLUGIN_NAME}..."
-                DEPENDS
-                ${TASCAR_PLUGIN}
-            )
+        add_custom_command(TARGET libov POST_BUILD
+            COMMAND
+            ${CMAKE_INSTALL_NAME_TOOL}
+            -id
+            "${TASCAR_PLUGIN}"
+            ${TASCAR_PLUGIN}
+            COMMENT "Fixing ${TASCAR_PLUGIN_NAME}..."
+            DEPENDS
+            ${TASCAR_PLUGIN}
+        )
     endforeach()
 endif(APPLE)
 
@@ -54,5 +53,5 @@ set(OV_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/libtascar/build)
 set(OV_LIBRARIES 
     ${CMAKE_CURRENT_SOURCE_DIR}/libov/build/libov.a
-    #${TASCAR_PLUGINS}
+    ${TASCAR_PLUGINS}
     )

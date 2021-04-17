@@ -12,7 +12,7 @@ endif (APPLE)
 add_subdirectory(JUCE)
 add_subdirectory(libds)
 
-set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
+set(COMPILE_OV_WITH_CMAKE OFF CACHE BOOL "Use cmake to configure and build OV")
 
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
@@ -94,6 +94,45 @@ target_link_libraries(DigitalStage
         juce::juce_recommended_warning_flags)
 
 if(UNIX)
+    ###
+    # ZITA
+    ###
+    add_subdirectory(zita-njbridge ${PROJECT_BINARY_DIR}/zita EXCLUDE_FROM_ALL)
+    # Copy zita binaries into the application bundle
+    add_custom_command(TARGET DigitalStage
+        POST_BUILD
+        COMMAND cp $<TARGET_FILE_DIR:zita-n2j>/zita-n2j
+        $<TARGET_FILE_DIR:DigitalStage>
+        COMMENT "Copying zita-n2j" VERBATIM)
+    add_custom_command(TARGET DigitalStage
+        POST_BUILD
+        COMMAND cp $<TARGET_FILE_DIR:zita-j2n>/zita-j2n
+        $<TARGET_FILE_DIR:DigitalStage>
+        COMMENT "Copying zita-j2n" VERBATIM)
+        if(APPLE)
+            add_custom_command(TARGET DigitalStage POST_BUILD
+                    COMMAND
+                    ${CMAKE_INSTALL_NAME_TOOL}
+                    -change
+                    "/usr/local/lib/libjack.0.1.0.dylib"
+                    "@executable_path/../Frameworks/libjack.0.1.0.dylib"
+                    "$<TARGET_FILE_DIR:DigitalStage>/zita-n2j"
+                    COMMENT "Fixing zita-n2j paths..."
+                    )
+            add_custom_command(TARGET DigitalStage POST_BUILD
+                    COMMAND
+                    ${CMAKE_INSTALL_NAME_TOOL}
+                    -change
+                    "/usr/local/lib/libjack.0.1.0.dylib"
+                    "@executable_path/../Frameworks/libjack.0.1.0.dylib"
+                    "$<TARGET_FILE_DIR:DigitalStage>/zita-j2n"
+                    COMMENT "Fixing zita-j2n paths..."
+                    )
+        endif(APPLE)
+
+    ###
+    # OV
+    ###
     if(COMPILE_OV_WITH_CMAKE)
         message(STATUS "Using cmake to build OV")
         add_subdirectory(libov)
@@ -118,7 +157,66 @@ if(UNIX)
         PRIVATE
             ${OV_LIBRARIES})
         add_dependencies(DigitalStage libov)
+
+        # Special routine to fix dynlib imports inside macos
+        if(APPLE)
+            foreach (TASCAR_PLUGIN IN LISTS TASCAR_PLUGINS)
+                string(REGEX MATCH "([^\/]+\.dylib)$" TASCAR_PLUGIN_NAME ${TASCAR_PLUGIN})
+                message(STATUS "Will copy ${TASCAR_PLUGIN} into app bundle")
+                if(false)
+                    add_custom_command(TARGET DigitalStage POST_BUILD
+                        COMMAND 
+                        ${CMAKE_COMMAND} -E copy_if_different
+                        ${TASCAR_PLUGIN}
+                        "$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/${TASCAR_PLUGIN_NAME}"
+                        COMMAND
+                        ${CMAKE_INSTALL_NAME_TOOL}
+                        -id
+                        "@executable_path/../Frameworks/${TASCAR_PLUGIN_NAME}"
+                        "$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/${TASCAR_PLUGIN_NAME}"
+                        COMMAND
+                        ${CMAKE_INSTALL_NAME_TOOL}
+                        -change
+                        "${TASCAR_PLUGIN}"
+                        "@executable_path/../Frameworks/${TASCAR_PLUGIN_NAME}"
+                        "$<TARGET_FILE:DigitalStage>"
+                        COMMENT 
+                        "Copying and fixing ${TASCAR_PLUGIN_NAME} into the application bundle"
+                        VERBATIM
+                    )
+                endif(false)
+            endforeach()
+            add_custom_command(TARGET DigitalStage POST_BUILD
+                    COMMAND
+                    ${CMAKE_INSTALL_NAME_TOOL}
+                    -add_rpath 
+                    @executable_path/../Frameworks
+                    "$<TARGET_FILE:DigitalStage>"
+                    COMMENT 
+                    "Adding rpath to target")
+        endif(APPLE)
     endif()
 endif(UNIX)
+
+if(APPLE)
+#    set_target_properties(DigitalStage PROPERTIES
+#        MACOSX_BUNDLE TRUE
+#        MACOSX_FRAMEWORK_IDENTIFIER org.digital-stage.client
+#        RESOURCE "${RESOURCE_FILES}")
+    cmake_policy(SET CMP0087 NEW)
+    if(APPLE_CERT)
+        message(STATUS "Signing app bundle is activated")
+        install(CODE "
+            INCLUDE(BundleUtilities)
+            FIXUP_BUNDLE(\"$<TARGET_FILE:DigitalStage>\" \"\" \"\")
+            EXECUTE_PROCESS(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"$<TARGET_FILE:DigitalStage>\" COMMENT \"Signing app bundle\")
+        ")
+    else(APPLE_CERT)
+        install(CODE "
+            INCLUDE(BundleUtilities)
+            FIXUP_BUNDLE(\"$<TARGET_FILE:DigitalStage>\" \"\" \"\")
+        ")
+    endif(APPLE_CERT)
+endif(APPLE)
 
 juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)
