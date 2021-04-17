@@ -17,7 +17,8 @@ set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
 add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
-add_compile_definitions(AUTH_URL="http://single.dstage.org/api/auth")
+add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
+add_compile_definitions(API_URL="ws://localhost:4000")
 
 juce_add_gui_app(DigitalStage
     BUNDLE_ID   org.digital-stage.client
@@ -42,8 +43,9 @@ juce_generate_juce_header(DigitalStage)
 target_sources(DigitalStage
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginPane.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/OvController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskbarComponent.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginWindow.cpp
         )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer

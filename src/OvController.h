@@ -1,14 +1,12 @@
 #pragma once
+#include "Client.h"
 #include <JuceHeader.h>
 
-#if JUCE_LINUX || JUCE_MAC
-#include "ov_render_tascar.h"
-#endif
+//#include <ov_render_tascar.h>
 
 class OvController {
 public:
-  OvController();
-  ~OvController();
+  OvController(DigitalStage::Client* client_);
 
   void init();
 
@@ -17,5 +15,6 @@ public:
   void stop();
 
 private:
-  juce::Thread serviceThread;
-}
+  DigitalStage::Client* client;
+  // juce::Thread serviceThread;
+};

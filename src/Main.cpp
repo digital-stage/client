@@ -2,8 +2,12 @@
 #include "ApplicationState.h"
 #include "ApplicationStore.h"
 #include "AuthService.h"
+#include "LoginPane.h"
 #include "LoginWindow.h"
 #include <JuceHeader.h>
+#if JUCE_LINUX || JUCE_MAC
+//#include "OvController.h"
+#endif
 
 #ifndef SIGNUP_URL
 #define SIGNUP_URL "https://live.digital-stage.org/auth/signup"
@@ -55,11 +59,23 @@ public:
     // Show splashscreen first
     juce::SplashScreen* splashScreen = new juce::SplashScreen(
         ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
+    // juce::SplashScreen* splashScreen = new juce::SplashScreen(
+    // ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
     splashScreen->setVisible(true);
 
+    // Init core
+    /*client.reset(new DigitalStage::Client(API_URL));
+#if JUCE_LINUX || JUCE_MAC
+    ovController.reset(new OvController(client.get()));
+#endif*/
+
     // Init UI
-    authService.reset(new DigitalStage::AuthService(AUTH_URL));
+    store.reset(new ApplicationStore(getApplicationName()));
     loginWindow.reset(new LoginWindow());
+    loginPane.reset(new LoginPane(store->getUserSettings()));
+    loginWindow->setResizeLimits(300, 400, 600, 1200);
+    loginWindow->setContentOwned(loginPane.get(), true);
+
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
     taskbar.reset(new TaskbarComponent(state));
     taskbar->onOpenStageClicked = []() {
@@ -72,40 +88,39 @@ public:
       URL(SIGNUP_URL).launchInDefaultBrowser();
     };
     taskbar->onSignInClicked = [&]() { loginWindow->setVisible(true); };
-    taskbar->onSignOutClicked = [&]() { loginWindow->setVisible(true); };
+    taskbar->onSignOutClicked = [&]() {
+      setApplicationState(ApplicationState::SIGNED_OUT);
+      loginWindow->setVisible(true);
+    };
 #else
     loginWindow->setVisible(true);
 #endif
 
-    // Check if user is signed in
-    store.reset(new ApplicationStore(getApplicationName()));
-    const juce::String token = store->getUserSettings()->getValue("token", "");
-    if(token.length() > 0 &&
-       authService->verifyTokenSync(token.toStdString())) {
-      // Signed in
-    } else {
-      // Show login panel
+    loginPane->onSignedIn = [&](juce::String token) {
+      // TODO: Now start extra thread handling the ds client and which
+      // registeres ov or jammer controller
+      std::cout << "Nice one: logged in and have token " << token << std::endl;
+      setApplicationState(ApplicationState::OUTSIDE_STAGE);
+      loginWindow->setVisible(false);
+    };
+
+    if(!loginPane->signInWithStoredCredentials()) {
       loginWindow->setVisible(true);
     }
-
-    loginWindow->onSubmit = [&](juce::String email, juce::String password) {
-      const auto requestedToken =
-          authService->signInSync(email.toStdString(), password.toStdString());
-      if(token.length() > 0) {
-        store->getUserSettings()->setValue("token",
-                                           juce::String(requestedToken));
-      }
-    };
 
     splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(2), false);
   }
 
   void shutdown() override
   {
-    loginWindow = nullptr;
-    store = nullptr;
+    // loginWindow = nullptr;
+    // loginPane = nullptr;
+    // store = nullptr;
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-    taskbar = nullptr;
+    // taskbar = nullptr;
+#endif
+#if JUCE_LINUX || JUCE_MAC
+    // ovController = nullptr;
 #endif
   }
 
@@ -128,14 +143,18 @@ public:
 
 private:
   // Business logic parts
-  std::unique_ptr<DigitalStage::AuthService> authService;
   ApplicationState state = ApplicationState::SIGNED_OUT;
   std::unique_ptr<ApplicationStore> store;
+  // std::shared_ptr<DigitalStage::Client> client;
 
   // UI components
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
   std::unique_ptr<TaskbarComponent> taskbar;
   std::unique_ptr<LoginWindow> loginWindow;
+  std::unique_ptr<LoginPane> loginPane;
+#endif
+#if JUCE_LINUX || JUCE_MAC
+  // std::unique_ptr<OvController> ovController;
 #endif
 };
 

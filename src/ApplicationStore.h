@@ -14,4 +14,6 @@ public:
     options.osxLibrarySubFolder = "Application Support/" + applicationName;
     setStorageParameters(options);
   }
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ApplicationStore)
 };
