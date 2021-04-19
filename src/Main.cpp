@@ -6,7 +6,7 @@
 #include "LoginWindow.h"
 #include <JuceHeader.h>
 #if JUCE_LINUX || JUCE_MAC
-//#include "OvController.h"
+#include "OvController.h"
 #endif
 
 #ifndef SIGNUP_URL
@@ -51,6 +51,39 @@ public:
     taskbar->setApplicationState(state);
   }
 
+  void connect(const std::string& apiToken)
+  {
+    setApplicationState(ApplicationState::OUTSIDE_STAGE);
+    nlohmann::json initialDevice;
+    initialDevice["uuid"] = "123456";
+    initialDevice["type"] = "ov";
+    initialDevice["canAudio"] = true;
+    initialDevice["canVideo"] = false;
+    try {
+      client->connect(apiToken, initialDevice);
+    }
+    catch(std::exception& e) {
+      handleException(e);
+    }
+  }
+
+  void handleException(const std::exception& e)
+  {
+    std::cerr << e.what() << std::endl;
+    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                           TRANS("error"), e.what());
+  }
+
+  void disconnect()
+  {
+    try {
+      client->disconnect();
+    }
+    catch(std::exception& e) {
+      handleException(e);
+    }
+  }
+
   //==============================================================================
   void initialise(const juce::String& commandLine) override
   {
@@ -64,10 +97,12 @@ public:
     splashScreen->setVisible(true);
 
     // Init core
-    /*client.reset(new DigitalStage::Client(API_URL));
+    client.reset(new DigitalStage::Client(API_URL));
 #if JUCE_LINUX || JUCE_MAC
     ovController.reset(new OvController(client.get()));
-#endif*/
+    ovController
+        ->init(); // This will start consuming events provided by the client
+#endif
 
     // Init UI
     store.reset(new ApplicationStore(getApplicationName()));
@@ -89,6 +124,7 @@ public:
     };
     taskbar->onSignInClicked = [&]() { loginWindow->setVisible(true); };
     taskbar->onSignOutClicked = [&]() {
+      disconnect();
       setApplicationState(ApplicationState::SIGNED_OUT);
       loginWindow->setVisible(true);
     };
@@ -97,11 +133,8 @@ public:
 #endif
 
     loginPane->onSignedIn = [&](juce::String token) {
-      // TODO: Now start extra thread handling the ds client and which
-      // registeres ov or jammer controller
-      std::cout << "Nice one: logged in and have token " << token << std::endl;
-      setApplicationState(ApplicationState::OUTSIDE_STAGE);
       loginWindow->setVisible(false);
+      connect(token.toStdString());
     };
 
     if(!loginPane->signInWithStoredCredentials()) {
@@ -145,7 +178,7 @@ private:
   // Business logic parts
   ApplicationState state = ApplicationState::SIGNED_OUT;
   std::unique_ptr<ApplicationStore> store;
-  // std::shared_ptr<DigitalStage::Client> client;
+  std::shared_ptr<DigitalStage::Client> client;
 
   // UI components
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
@@ -154,7 +187,7 @@ private:
   std::unique_ptr<LoginPane> loginPane;
 #endif
 #if JUCE_LINUX || JUCE_MAC
-  // std::unique_ptr<OvController> ovController;
+  std::unique_ptr<OvController> ovController;
 #endif
 };
 

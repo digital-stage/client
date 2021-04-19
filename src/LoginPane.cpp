@@ -44,9 +44,7 @@ LoginPane::~LoginPane()
 bool LoginPane::signInWithStoredCredentials()
 {
   const juce::String token = store->getValue("token", "");
-  std::cout << "Token: " << token.toStdString() << std::endl;
   if(token.length() > 0) {
-    std::cout << "Found stored token" << std::endl;
     // if(authService->verifyTokenSync(token.toStdString())) {
     // std::cout << "Token is valid and can be used" << std::endl;
     if(onSignedIn)

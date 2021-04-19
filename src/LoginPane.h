@@ -9,6 +9,8 @@ public:
 
   bool signInWithStoredCredentials();
 
+  // juce::String getToken() const;
+
 protected:
   void resized() override;
   void buttonClicked(juce::Button* button) override;

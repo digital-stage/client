@@ -4,21 +4,25 @@ project(DIGITALSTAGE_APP VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
+
 if (APPLE)
         include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixAppleArchitecture.cmake)
         set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 endif (APPLE)
 
-add_subdirectory(JUCE)
-add_subdirectory(libds)
-
-set(COMPILE_OV_WITH_CMAKE OFF CACHE BOOL "Use cmake to configure and build OV")
+set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
+#set(COMPILE_OV_WITH_CMAKE ON)
 
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
 add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
 add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
 add_compile_definitions(API_URL="ws://localhost:4000")
+
+
+add_subdirectory(JUCE EXCLUDE_FROM_ALL)
+add_subdirectory(libds EXCLUDE_FROM_ALL)
 
 juce_add_gui_app(DigitalStage
     BUNDLE_ID   org.digital-stage.client
@@ -109,7 +113,7 @@ if(UNIX)
         COMMAND cp $<TARGET_FILE_DIR:zita-j2n>/zita-j2n
         $<TARGET_FILE_DIR:DigitalStage>
         COMMENT "Copying zita-j2n" VERBATIM)
-        if(APPLE)
+        if(false)
             add_custom_command(TARGET DigitalStage POST_BUILD
                     COMMAND
                     ${CMAKE_INSTALL_NAME_TOOL}
@@ -128,20 +132,20 @@ if(UNIX)
                     "$<TARGET_FILE_DIR:DigitalStage>/zita-j2n"
                     COMMENT "Fixing zita-j2n paths..."
                     )
-        endif(APPLE)
+        endif(false)
 
     ###
     # OV
     ###
     if(COMPILE_OV_WITH_CMAKE)
         message(STATUS "Using cmake to build OV")
-        add_subdirectory(libov)
-        target_include_directories(DigitalStage 
-        PRIVATE 
-            ov)
+        add_subdirectory(libov EXCLUDE_FROM_ALL)
+        get_property(TASCAR_PLUGIN_LIBRARIES GLOBAL PROPERTY TASCAR_PLUGIN_LIBRARIES)
         target_link_libraries(DigitalStage
         PRIVATE
-            ov)
+            Ov::Ov
+            ${TASCAR_PLUGIN_LIBRARIES}
+            )
     else()
         message(STATUS "Using Makefile to build OV")
         target_sources(DigitalStage
@@ -151,10 +155,10 @@ if(UNIX)
         # Add ov dependency only on unix like systems
         include(${CMAKE_CURRENT_LIST_DIR}/cmake/BuildLibOv.cmake)
         target_include_directories(DigitalStage 
-        PRIVATE 
+        PUBLIC 
             ${OV_INCLUDE_DIRS})
         target_link_libraries(DigitalStage
-        PRIVATE
+        PUBLIC
             ${OV_LIBRARIES})
         add_dependencies(DigitalStage libov)
 
@@ -209,7 +213,12 @@ if(APPLE)
         install(CODE "
             INCLUDE(BundleUtilities)
             FIXUP_BUNDLE(\"$<TARGET_FILE:DigitalStage>\" \"\" \"\")
-            EXECUTE_PROCESS(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"$<TARGET_FILE:DigitalStage>\" COMMENT \"Signing app bundle\")
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/\${PLUGIN}.dylib\")
+            endforeach()
+            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"$<TARGET_FILE:DigitalStage>\" COMMENT \"Signing app bundle\")
         ")
     else(APPLE_CERT)
         install(CODE "
