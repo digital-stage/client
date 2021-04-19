@@ -14,9 +14,8 @@ void runAsync(std::function<void(void)> task,
   // persisted the thread
 }
 
-LoginPane::LoginPane(juce::PropertiesFile* store_)
+LoginPane::LoginPane()
 {
-  store = store_;
   authService.reset(new DigitalStage::AuthService(AUTH_URL));
   logo.setImage(getImageFromAssets("logo-full@2x.png"));
   emailLabel.setText(TRANS("email"), dontSendNotification);
@@ -41,21 +40,6 @@ LoginPane::~LoginPane()
   authService = nullptr;
 }
 
-bool LoginPane::signInWithStoredCredentials()
-{
-  const juce::String token = store->getValue("token", "");
-  if(token.length() > 0) {
-    // if(authService->verifyTokenSync(token.toStdString())) {
-    // std::cout << "Token is valid and can be used" << std::endl;
-    if(onSignedIn)
-      onSignedIn(token);
-    return true;
-    //}
-    // std::cout << "Token is invalid" << std::endl;
-  }
-  return false;
-}
-
 void LoginPane::buttonClicked(juce::Button*)
 {
   const juce::String email = emailEditor.getText();
@@ -67,8 +51,6 @@ void LoginPane::buttonClicked(juce::Button*)
       MessageManager::callAsync([&, result]() {
         if(result.length() > 0) {
           const juce::String token = juce::String(result);
-          store->setValue("token", token);
-          store->save();
           if(onSignedIn) {
             onSignedIn(token);
           }

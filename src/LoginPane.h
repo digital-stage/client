@@ -4,10 +4,10 @@
 
 class LoginPane : public juce::Component, public juce::Button::Listener {
 public:
-  LoginPane(juce::PropertiesFile* store);
+  LoginPane();
   ~LoginPane() override;
 
-  bool signInWithStoredCredentials();
+  void signOut();
 
   // juce::String getToken() const;
 
@@ -20,7 +20,6 @@ public:
 
 private:
   std::unique_ptr<DigitalStage::AuthService> authService;
-  juce::PropertiesFile* store;
   juce::ImageComponent logo;
   juce::FlexBox container;
   juce::Label errorLabel;

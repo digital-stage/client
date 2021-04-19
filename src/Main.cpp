@@ -1,29 +1,6 @@
 #include "../assets/utils.h"
-#include "ApplicationState.h"
-#include "ApplicationStore.h"
-#include "AuthService.h"
-#include "LoginPane.h"
-#include "LoginWindow.h"
+#include "ApplicationController.h"
 #include <JuceHeader.h>
-#if JUCE_LINUX || JUCE_MAC
-#include "OvController.h"
-#endif
-
-#ifndef SIGNUP_URL
-#define SIGNUP_URL "https://live.digital-stage.org/auth/signup"
-#endif
-
-#ifndef STAGE_URL
-#define STAGE_URL "https://live.digital-stage.org/stage"
-#endif
-
-#ifndef MIXER_URL
-#define MIXER_URL "https://live.digital-stage.org/mixer"
-#endif
-
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-#include "TaskbarComponent.h"
-#endif
 
 //==============================================================================
 class Main : public juce::JUCEApplication {
@@ -43,46 +20,7 @@ public:
   {
     return JUCE_APPLICATION_VERSION_STRING;
   }
-  bool moreThanOneInstanceAllowed() override { return true; }
-
-  void setApplicationState(ApplicationState value)
-  {
-    state = value;
-    taskbar->setApplicationState(state);
-  }
-
-  void connect(const std::string& apiToken)
-  {
-    setApplicationState(ApplicationState::OUTSIDE_STAGE);
-    nlohmann::json initialDevice;
-    initialDevice["uuid"] = "123456";
-    initialDevice["type"] = "ov";
-    initialDevice["canAudio"] = true;
-    initialDevice["canVideo"] = false;
-    try {
-      client->connect(apiToken, initialDevice);
-    }
-    catch(std::exception& e) {
-      handleException(e);
-    }
-  }
-
-  void handleException(const std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                           TRANS("error"), e.what());
-  }
-
-  void disconnect()
-  {
-    try {
-      client->disconnect();
-    }
-    catch(std::exception& e) {
-      handleException(e);
-    }
-  }
+  bool moreThanOneInstanceAllowed() override { return false; }
 
   //==============================================================================
   void initialise(const juce::String& commandLine) override
@@ -96,65 +34,15 @@ public:
     // ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
     splashScreen->setVisible(true);
 
-    // Init core
-    client.reset(new DigitalStage::Client(API_URL));
-#if JUCE_LINUX || JUCE_MAC
-    ovController.reset(new OvController(client.get()));
-    ovController
-        ->init(); // This will start consuming events provided by the client
-#endif
-
-    // Init UI
-    store.reset(new ApplicationStore(getApplicationName()));
-    loginWindow.reset(new LoginWindow());
-    loginPane.reset(new LoginPane(store->getUserSettings()));
-    loginWindow->setResizeLimits(300, 400, 600, 1200);
-    loginWindow->setContentOwned(loginPane.get(), true);
-
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-    taskbar.reset(new TaskbarComponent(state));
-    taskbar->onOpenStageClicked = []() {
-      URL(STAGE_URL).launchInDefaultBrowser();
-    };
-    taskbar->onOpenMixerClicked = []() {
-      URL(MIXER_URL).launchInDefaultBrowser();
-    };
-    taskbar->onSignUpClicked = []() {
-      URL(SIGNUP_URL).launchInDefaultBrowser();
-    };
-    taskbar->onSignInClicked = [&]() { loginWindow->setVisible(true); };
-    taskbar->onSignOutClicked = [&]() {
-      disconnect();
-      setApplicationState(ApplicationState::SIGNED_OUT);
-      loginWindow->setVisible(true);
-    };
-#else
-    loginWindow->setVisible(true);
-#endif
-
-    loginPane->onSignedIn = [&](juce::String token) {
-      loginWindow->setVisible(false);
-      connect(token.toStdString());
-    };
-
-    if(!loginPane->signInWithStoredCredentials()) {
-      loginWindow->setVisible(true);
-    }
-
+    // Init controller
+    controller.reset(new ApplicationController());
+    
     splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(2), false);
   }
 
   void shutdown() override
   {
-    // loginWindow = nullptr;
-    // loginPane = nullptr;
-    // store = nullptr;
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-    // taskbar = nullptr;
-#endif
-#if JUCE_LINUX || JUCE_MAC
-    // ovController = nullptr;
-#endif
+    controller = nullptr;
   }
 
   //==============================================================================
@@ -175,20 +63,7 @@ public:
   }
 
 private:
-  // Business logic parts
-  ApplicationState state = ApplicationState::SIGNED_OUT;
-  std::unique_ptr<ApplicationStore> store;
-  std::shared_ptr<DigitalStage::Client> client;
-
-  // UI components
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-  std::unique_ptr<TaskbarComponent> taskbar;
-  std::unique_ptr<LoginWindow> loginWindow;
-  std::unique_ptr<LoginPane> loginPane;
-#endif
-#if JUCE_LINUX || JUCE_MAC
-  std::unique_ptr<OvController> ovController;
-#endif
+  std::unique_ptr<ApplicationController> controller;
 };
 
 //==============================================================================

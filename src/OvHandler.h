@@ -1,14 +1,13 @@
 #pragma once
-#include "Client.h"
+#include <Client.h>
 #include <JuceHeader.h>
 
 #include "../libov/src/ov_client_orlandoviols.h"
 #include "../libov/src/ov_render_tascar.h"
 
-class OvController {
+class OvHandler {
 public:
-  OvController(DigitalStage::Client* client_);
-
+  OvHandler(const DigitalStage::Client* client_);
   void init();
 
 protected:

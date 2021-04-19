@@ -47,9 +47,10 @@ juce_generate_juce_header(DigitalStage)
 target_sources(DigitalStage
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ApplicationController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginPane.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/OvController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskbarComponent.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/JammerHandler.cpp
         )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
@@ -98,6 +99,11 @@ target_link_libraries(DigitalStage
         juce::juce_recommended_warning_flags)
 
 if(UNIX)
+    target_sources(DigitalStage
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/OvHandler.cpp
+    )
+    
     ###
     # ZITA
     ###
@@ -148,10 +154,6 @@ if(UNIX)
             )
     else()
         message(STATUS "Using Makefile to build OV")
-        target_sources(DigitalStage
-            PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/OvController.cpp
-        )
         # Add ov dependency only on unix like systems
         include(${CMAKE_CURRENT_LIST_DIR}/cmake/BuildLibOv.cmake)
         target_include_directories(DigitalStage 
@@ -212,7 +214,7 @@ if(APPLE)
         message(STATUS "Signing app bundle is activated")
         install(CODE "
             INCLUDE(BundleUtilities)
-            FIXUP_BUNDLE(\"$<TARGET_FILE:DigitalStage>\" \"\" \"\")
+            FIXUP_BUNDLE(\"$<TARGET_BUNDLE_DIR:DigitalStage>\" \"\" \"\")
             set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
             foreach (PLUGIN IN LISTS PLUGINS)
                 message(STATUS \"Fixing \${PLUGIN}\")
@@ -223,7 +225,12 @@ if(APPLE)
     else(APPLE_CERT)
         install(CODE "
             INCLUDE(BundleUtilities)
-            FIXUP_BUNDLE(\"$<TARGET_FILE:DigitalStage>\" \"\" \"\")
+            FIXUP_BUNDLE(\"$<TARGET_BUNDLE_DIR:DigitalStage>\" \"\" \"\")
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/\${PLUGIN}.dylib\")
+            endforeach()
         ")
     endif(APPLE_CERT)
 endif(APPLE)

@@ -1,14 +1,14 @@
-#include "OvController.h"
+#include "OvHandler.h"
 #include "eventpp/utilities/argumentadapter.h"
 #include <JuceHeader.h>
 
-OvController::OvController(DigitalStage::Client* client_) : client(client_)
+OvHandler::OvHandler(const DigitalStage::Client* client_) : client(client_)
 {
   auto mac = getmacaddr();
   thread.reset(new ServiceThread(mac));
 }
 
-void OvController::init()
+void OvHandler::init()
 {
   client->appendListener(
       DigitalStage::EventType::STAGE_JOINED,
@@ -35,21 +35,21 @@ void OvController::init()
                   const DigitalStage::Store&) { stop(); })));
 }
 
-void OvController::start()
+void OvHandler::start()
 {
   if(!thread->isThreadRunning()) {
     thread->startThread(10);
   }
 }
 
-void OvController::stop()
+void OvHandler::stop()
 {
   if(thread->isThreadRunning()) {
     thread->stopThread(1000);
   }
 }
 
-OvController::ServiceThread::ServiceThread(const std::string& uuid)
+OvHandler::ServiceThread::ServiceThread(const std::string& uuid)
     : juce::Thread("ovcore")
 {
   renderer.reset(new ov_render_tascar_t(uuid, 0));
@@ -63,12 +63,12 @@ OvController::ServiceThread::ServiceThread(const std::string& uuid)
   client->set_runtime_folder(appFolder);
 }
 
-OvController::ServiceThread::~ServiceThread()
+OvHandler::ServiceThread::~ServiceThread()
 {
   stopThread(1000);
 }
 
-void OvController::ServiceThread::run()
+void OvHandler::ServiceThread::run()
 {
   renderer->start_audiobackend();
   client->start_service();

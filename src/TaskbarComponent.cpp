@@ -8,7 +8,9 @@ enum MENU_IDENTIFIER {
   SIGN_UP = 3,
   OPEN_STAGE = 4,
   OPEN_MIXER = 5,
-  QUIT = 6
+  USE_DIGITALSTAGE = 6,
+  USE_ORLANDOVIOLS = 7,
+  QUIT = 8
 };
 
 TaskbarComponent::TaskbarComponent(ApplicationState initialState)
@@ -60,6 +62,18 @@ static void menuInvocationCallback(int chosenItemID, TaskbarComponent* taskBar)
     }
     break;
   }
+  case MENU_IDENTIFIER::USE_ORLANDOVIOLS: {
+    if(taskBar->onUseOrlandoViolsClicked) {
+      taskBar->onUseOrlandoViolsClicked();
+    }
+    break;
+  }
+  case MENU_IDENTIFIER::USE_DIGITALSTAGE: {
+    if(taskBar->onUseDigitalStageClicked) {
+      taskBar->onUseDigitalStageClicked();
+    }
+    break;
+  }
   case MENU_IDENTIFIER::OPEN_MIXER: {
     if(taskBar->onOpenMixerClicked) {
       taskBar->onOpenMixerClicked();
@@ -99,6 +113,11 @@ void TaskbarComponent::buildPopup()
   case SIGNED_OUT: {
     m.addItem(MENU_IDENTIFIER::SIGN_IN, TRANS("Sign in"));
     m.addItem(MENU_IDENTIFIER::SIGN_UP, TRANS("Sign up"));
+    m.addItem(MENU_IDENTIFIER::USE_ORLANDOVIOLS, TRANS("Switch to orlandoviols..."));
+    break;
+  }
+  case ORLANDOVIOLS_STANDALONE: {
+    m.addItem(MENU_IDENTIFIER::USE_DIGITALSTAGE, TRANS("Switch to Digital Stage..."));
     break;
   }
   }
