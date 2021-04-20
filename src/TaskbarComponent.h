@@ -10,12 +10,12 @@ public:
   void setApplicationState(ApplicationState value);
 
   std::function<void()> onSignUpClicked;
-  std::function<void()> onSignInClicked;
   std::function<void()> onSignOutClicked;
   std::function<void()> onOpenStageClicked;
   std::function<void()> onOpenMixerClicked;
   std::function<void()> onUseOrlandoViolsClicked;
   std::function<void()> onUseDigitalStageClicked;
+  std::function<void()> onSettingsClicked;
 
 private:
   void buildPopup();

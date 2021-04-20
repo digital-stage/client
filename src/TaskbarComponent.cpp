@@ -3,13 +3,13 @@
 #include <iostream>
 
 enum MENU_IDENTIFIER {
-  SIGN_IN = 1,
-  SIGN_OUT = 2,
-  SIGN_UP = 3,
-  OPEN_STAGE = 4,
-  OPEN_MIXER = 5,
-  USE_DIGITALSTAGE = 6,
-  USE_ORLANDOVIOLS = 7,
+  SIGN_OUT = 1,
+  SIGN_UP = 2,
+  OPEN_STAGE = 3,
+  OPEN_MIXER = 4,
+  USE_DIGITALSTAGE = 5,
+  USE_ORLANDOVIOLS = 6,
+  SETTINGS = 7,
   QUIT = 8
 };
 
@@ -50,12 +50,6 @@ static void menuInvocationCallback(int chosenItemID, TaskbarComponent* taskBar)
       taskBar->onSignUpClicked();
     break;
   }
-  case MENU_IDENTIFIER::SIGN_IN: {
-    if(taskBar->onSignInClicked) {
-      taskBar->onSignInClicked();
-    }
-    break;
-  }
   case MENU_IDENTIFIER::SIGN_OUT: {
     if(taskBar->onSignOutClicked) {
       taskBar->onSignOutClicked();
@@ -86,6 +80,12 @@ static void menuInvocationCallback(int chosenItemID, TaskbarComponent* taskBar)
     }
     break;
   }
+  case MENU_IDENTIFIER::SETTINGS: {
+    if(taskBar->onSettingsClicked) {
+      taskBar->onSettingsClicked();
+    }
+    break;
+  }
   }
 }
 
@@ -95,29 +95,34 @@ void TaskbarComponent::buildPopup()
 
   switch(state) {
   case OUTSIDE_STAGE: {
+    m.addItem(MENU_IDENTIFIER::SETTINGS, TRANS("Settings"));
     m.addItem(MENU_IDENTIFIER::SIGN_OUT, TRANS("Sign out"));
     break;
   }
   case OV: {
     m.addItem(MENU_IDENTIFIER::OPEN_STAGE, TRANS("Open stage"));
     m.addItem(MENU_IDENTIFIER::OPEN_MIXER, TRANS("Open mixer"));
+    m.addItem(MENU_IDENTIFIER::SETTINGS, TRANS("Settings"));
     m.addItem(MENU_IDENTIFIER::SIGN_OUT, TRANS("Sign out"));
     break;
   }
   case JAMMER: {
     m.addItem(MENU_IDENTIFIER::OPEN_STAGE, TRANS("Open stage"));
     m.addItem(MENU_IDENTIFIER::OPEN_MIXER, TRANS("Open mixer"));
+    m.addItem(MENU_IDENTIFIER::SETTINGS, TRANS("Settings"));
     m.addItem(MENU_IDENTIFIER::SIGN_OUT, TRANS("Sign out"));
     break;
   }
   case SIGNED_OUT: {
-    m.addItem(MENU_IDENTIFIER::SIGN_IN, TRANS("Sign in"));
     m.addItem(MENU_IDENTIFIER::SIGN_UP, TRANS("Sign up"));
-    m.addItem(MENU_IDENTIFIER::USE_ORLANDOVIOLS, TRANS("Switch to orlandoviols..."));
+    m.addItem(MENU_IDENTIFIER::SETTINGS, TRANS("Settings"));
+    m.addItem(MENU_IDENTIFIER::USE_ORLANDOVIOLS,
+              TRANS("Switch to orlandoviols..."));
     break;
   }
   case ORLANDOVIOLS_STANDALONE: {
-    m.addItem(MENU_IDENTIFIER::USE_DIGITALSTAGE, TRANS("Switch to Digital Stage..."));
+    m.addItem(MENU_IDENTIFIER::USE_DIGITALSTAGE,
+              TRANS("Switch to Digital Stage..."));
     break;
   }
   }

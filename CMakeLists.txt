@@ -8,11 +8,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 
 if (APPLE)
         include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixAppleArchitecture.cmake)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
 endif (APPLE)
 
 set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
-#set(COMPILE_OV_WITH_CMAKE ON)
 
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
@@ -28,6 +27,7 @@ juce_add_gui_app(DigitalStage
     BUNDLE_ID   org.digital-stage.client
     ICON_BIG    ${CMAKE_CURRENT_LIST_DIR}/assets/appicon.png
     NEEDS_CURL  TRUE
+    
     COMPANY_NAME "Digital Stage gGmbH"
     PRODUCT_NAME "DigitalStage")
 
@@ -50,7 +50,7 @@ target_sources(DigitalStage
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ApplicationController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginPane.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskbarComponent.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/JammerHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/handler/JammerHandler.cpp
         )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
@@ -92,6 +92,7 @@ target_link_libraries(DigitalStage
     PRIVATE
         # GuiAppData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
+        juce::juce_audio_utils
         ds
     PUBLIC
         juce::juce_recommended_config_flags
@@ -101,7 +102,7 @@ target_link_libraries(DigitalStage
 if(UNIX)
     target_sources(DigitalStage
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/OvHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/handler/OvHandler.cpp
     )
     
     ###
