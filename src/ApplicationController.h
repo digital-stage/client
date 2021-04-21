@@ -1,10 +1,11 @@
 #pragma once
 
 #include "ApplicationStore.h"
-#include "handler/JammerHandler.h"
+#include "jammer/JammerHandler.h"
+#include "utils/SoundCardManager.h"
 #if JUCE_LINUX || JUCE_MAC
-#include "OrlandoViolsClient.h"
-#include "handler/OvHandler.h"
+#include "ov/OrlandoViolsClient.h"
+#include "ov/OvHandler.h"
 #endif
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
 #include "TaskbarComponent.h"
@@ -12,8 +13,8 @@
 #include "LoginPane.h"
 #include "LoginWindow.h"
 #include "SettingsWindow.h"
-#include <Client.h>
 #include <JuceHeader.h>
+#include <ds/Client.h>
 #include <string>
 
 #ifndef SIGNUP_URL
@@ -37,7 +38,7 @@ public:
 private:
   void init();
   const juce::File getAppDataDir() const;
-  void signIn(const juce::String token);
+  void handleSignIn(const juce::String token);
   void signOut();
 #if JUCE_LINUX || JUCE_MAC
   void switchToOrlandoViols();
@@ -51,6 +52,7 @@ private:
   std::unique_ptr<ApplicationStore> store;
   // API client for receiving/sending events from the Digital Stage API server
   std::shared_ptr<DigitalStage::Client> apiClient;
+  std::unique_ptr<SoundCardManager> soundCardManager;
   // Event handler for jammer
   std::unique_ptr<JammerHandler> jammerHandler;
 #if JUCE_LINUX || JUCE_MAC

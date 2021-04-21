@@ -1,24 +1,24 @@
 list(APPEND TASCAR_PLUGINS 
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_delay.dylib    
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_metronome.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_ap_sndfile.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_jackrec.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_route.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_system.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_touchosc.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascar_waitforjackport.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_hrtf.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_omni.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_ortf.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarreceiver_simplefdn.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarsource_cardioidmod.dylib
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/plugins/build/ovclienttascarsource_omni.dylib)
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_ap_delay.dylib    
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_ap_metronome.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_ap_sndfile.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_jackrec.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_route.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_system.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_touchosc.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascar_waitforjackport.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarreceiver_hrtf.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarreceiver_omni.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarreceiver_ortf.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarreceiver_simplefdn.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarsource_cardioidmod.dylib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/plugins/build/ovclienttascarsource_omni.dylib)
 
 message(STATUS "Will compile OV for ${CMAKE_SYSTEM_PROCESSOR}")
 
 add_custom_command(
     OUTPUT 
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/build/libov.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/build/libov.a
         ${TASCAR_PLUGINS}
     COMMAND make VERBOSE=1 ARCH=${CMAKE_SYSTEM_PROCESSOR} -j${CMAKE_BUILD_PARALLEL_LEVEL}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libov
@@ -27,7 +27,7 @@ add_custom_command(
 )
 add_custom_target(libov
     DEPENDS 
-        ${CMAKE_CURRENT_SOURCE_DIR}/libov/build/libov.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/build/libov.a
         ${TASCAR_PLUGINS}
     VERBATIM
     )
@@ -49,9 +49,9 @@ if(APPLE)
 endif(APPLE)
 
 set(OV_INCLUDE_DIRS 
-    ${CMAKE_CURRENT_SOURCE_DIR}/libov/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/libov/tascar/libtascar/build)
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/tascar/libtascar/build)
 set(OV_LIBRARIES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/libov/build/libov.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libov/build/libov.a
     ${TASCAR_PLUGINS}
     )

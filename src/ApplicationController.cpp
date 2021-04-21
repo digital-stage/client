@@ -24,20 +24,14 @@ ApplicationController::~ApplicationController()
 void ApplicationController::init()
 {
   const juce::File appDataDir = getAppDataDir();
+  appDataDir.setAsCurrentWorkingDirectory();
 
   apiClient.reset(new DigitalStage::Client(API_URL));
-  // Send soundcards when the local device is ready
-  apiClient->appendListener(
-      DigitalStage::EventType::LOCAL_DEVICE_READY,
-      eventpp::argumentAdapter(
-          std::function<void(const DigitalStage::EventLocalDeviceReady&,
-                             const DigitalStage::Store&)>(
-              [&](const DigitalStage::EventLocalDeviceReady& e,
-                  const DigitalStage::Store& s) {
-
-              })));
-
   audioDeviceManager.reset(new juce::AudioDeviceManager());
+
+  soundCardManager.reset(
+      new SoundCardManager(apiClient.get(), audioDeviceManager.get()));
+
   store.reset(new ApplicationStore(ProjectInfo::projectName));
   settingsWindow.reset(new SettingsWindow(*audioDeviceManager));
   loginWindow.reset(new LoginWindow());
@@ -67,23 +61,17 @@ void ApplicationController::init()
   taskbar->onUseDigitalStageClicked = [&]() { switchToDigitalStage(); };
   taskbar->onUseOrlandoViolsClicked = [&]() { switchToOrlandoViols(); };
 #endif
-#else
-  loginWindow->setVisible(true);
 #endif
-
   loginPane->onSignedIn = [&](juce::String token) {
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
     loginWindow->setVisible(false);
-#endif
-    signIn(token);
+    handleSignIn(token);
   };
 
   const juce::String token = store->getUserSettings()->getValue("token", "");
   if(token.length() > 0) {
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
+    handleSignIn(token);
+  } else {
     loginWindow->setVisible(true);
-#endif
-    signIn(token);
   }
 }
 
@@ -104,7 +92,7 @@ const juce::File ApplicationController::getAppDataDir() const
   return folder;
 }
 
-void ApplicationController::signIn(const juce::String token)
+void ApplicationController::handleSignIn(const juce::String token)
 {
   nlohmann::json initialDevice;
   initialDevice["uuid"] = "123456";

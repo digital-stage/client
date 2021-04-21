@@ -20,8 +20,8 @@ add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
 add_compile_definitions(API_URL="ws://localhost:4000")
 
 
-add_subdirectory(JUCE EXCLUDE_FROM_ALL)
-add_subdirectory(libds EXCLUDE_FROM_ALL)
+add_subdirectory(lib/JUCE EXCLUDE_FROM_ALL)
+add_subdirectory(lib/libds EXCLUDE_FROM_ALL)
 
 juce_add_gui_app(DigitalStage
     BUNDLE_ID   org.digital-stage.client
@@ -50,7 +50,8 @@ target_sources(DigitalStage
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ApplicationController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/LoginPane.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskbarComponent.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/handler/JammerHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/jammer/JammerHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/SoundCardManager.cpp
         )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
@@ -85,7 +86,8 @@ target_compile_definitions(DigitalStage
 
 target_include_directories(DigitalStage
         PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/libds/src
+        ${CMAKE_CURRENT_LIST_DIR}/lib/libds/include
+        #${CMAKE_CURRENT_LIST_DIR}/lib/libds/third_party/eventpp/include/eventpp
     )
 
 target_link_libraries(DigitalStage
@@ -102,7 +104,8 @@ target_link_libraries(DigitalStage
 if(UNIX)
     target_sources(DigitalStage
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/handler/OvHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ov/OvHandler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ov/OvMixer.cpp
     )
     
     ###
@@ -146,7 +149,7 @@ if(UNIX)
     ###
     if(COMPILE_OV_WITH_CMAKE)
         message(STATUS "Using cmake to build OV")
-        add_subdirectory(libov EXCLUDE_FROM_ALL)
+        add_subdirectory(lib/libov EXCLUDE_FROM_ALL)
         get_property(TASCAR_PLUGIN_LIBRARIES GLOBAL PROPERTY TASCAR_PLUGIN_LIBRARIES)
         target_link_libraries(DigitalStage
         PRIVATE
@@ -206,10 +209,6 @@ if(UNIX)
 endif(UNIX)
 
 if(APPLE)
-#    set_target_properties(DigitalStage PROPERTIES
-#        MACOSX_BUNDLE TRUE
-#        MACOSX_FRAMEWORK_IDENTIFIER org.digital-stage.client
-#        RESOURCE "${RESOURCE_FILES}")
     cmake_policy(SET CMP0087 NEW)
     if(APPLE_CERT)
         message(STATUS "Signing app bundle is activated")

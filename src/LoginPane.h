@@ -1,6 +1,6 @@
 #pragma once
-#include <AuthService.h>
 #include <JuceHeader.h>
+#include <ds/AuthService.h>
 
 class LoginPane : public juce::Component, public juce::Button::Listener {
 public:

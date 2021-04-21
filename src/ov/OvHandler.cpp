@@ -8,6 +8,7 @@ OvHandler::OvHandler(DigitalStage::Client* client_, const juce::File appDataDir)
   auto uuid = getmacaddr();
   renderer.reset(new ov_render_tascar_t(uuid, 0));
   renderer->set_runtime_folder(appDataDir.getFullPathName().toStdString());
+  mixer.reset(new OvMixer(appDataDir));
 }
 
 void OvHandler::init()
@@ -80,11 +81,14 @@ void OvHandler::init()
 
 void OvHandler::start()
 {
+  // TODO: Check if jack is running
+  mixer->start();
   isRunning = true;
 }
 
 void OvHandler::stop()
 {
+  mixer->stop();
   isRunning = false;
 }
 
