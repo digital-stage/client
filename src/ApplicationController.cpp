@@ -39,10 +39,12 @@ void ApplicationController::init()
   loginWindow->setResizeLimits(300, 400, 600, 1200);
   loginWindow->setContentOwned(loginPane.get(), true);
 #if JUCE_LINUX || JUCE_MAC
+  jackAudioController.reset(new JackAudioController());
+  jackAudioController->setActive(true);
   ovHandler.reset(new OvHandler(apiClient.get(), appDataDir));
   ovHandler->init(); // This will start consuming events provided by the client
-  orlandoViolsClient.reset(
-      new OrlandoViolsClient(appDataDir.getFullPathName().toStdString()));
+  orlandoViolsClient.reset(new OrlandoViolsClient(
+      jackAudioController.get(), appDataDir.getFullPathName().toStdString()));
 #endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC

@@ -32,6 +32,8 @@ protected:
   std::unique_ptr<ov_render_tascar_t> renderer;
 
 private:
+  bool isWaitingForJack;
+  bool onOvStage;
   mutable std::recursive_mutex mutex;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OvHandler)

@@ -56,6 +56,7 @@ private:
   // Event handler for jammer
   std::unique_ptr<JammerHandler> jammerHandler;
 #if JUCE_LINUX || JUCE_MAC
+  std::unique_ptr<JackAudioController> jackAudioController;
   // Event handler for OV
   std::unique_ptr<OvHandler> ovHandler;
   // Client to use the orlandoviols frontend (without Digital Stage)
