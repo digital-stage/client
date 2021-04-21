@@ -19,7 +19,7 @@ jobs:
         env:
           APPLE_CERT: "Apple Development: Tobias Hegemann (Tobias Hegemann)"
           CMAKE_BUILD_TYPE: Release
-        run: 'cmake -DCMAKE_BUILD_TYPE=Release -DAPPLE_CERT="Apple Development: Tobias Hegemann (Tobias Hegemann)"" .'
+        run: 'cmake -DCMAKE_BUILD_TYPE=Release -DAPPLE_CERT="Apple Development: Tobias Hegemann (Tobias Hegemann)" .'
       - name: Building
         run: make
       - name: Bundling
