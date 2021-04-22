@@ -23,7 +23,7 @@ jobs:
       - name: Building
         run: make
       - name: Bundling
-        run: make install
+        run: cpack
       - name: Publishing
         uses: svenstaro/upload-release-action@v2
         with:
