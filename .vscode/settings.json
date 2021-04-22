@@ -97,6 +97,7 @@
         "cinttypes": "cpp",
         "filesystem": "cpp",
         "*.ipp": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "source_location": "cpp"
     }
 }

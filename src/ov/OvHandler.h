@@ -12,7 +12,7 @@
 
 class OvHandler {
 public:
-  OvHandler(DigitalStage::Client* client_, const juce::File appDataDir);
+  OvHandler(DigitalStage::Client* client_);
   void init();
 
 protected:

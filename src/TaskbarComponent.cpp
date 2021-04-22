@@ -10,7 +10,8 @@ enum MENU_IDENTIFIER {
   USE_DIGITALSTAGE = 5,
   USE_ORLANDOVIOLS = 6,
   SETTINGS = 7,
-  QUIT = 8
+  QUIT = 8,
+  OPEN_LOCAL_MIXER = 9
 };
 
 TaskbarComponent::TaskbarComponent(ApplicationState initialState)
@@ -68,6 +69,12 @@ static void menuInvocationCallback(int chosenItemID, TaskbarComponent* taskBar)
     }
     break;
   }
+  case MENU_IDENTIFIER::OPEN_LOCAL_MIXER: {
+    if(taskBar->onOpenLocalMixerClicked) {
+      taskBar->onOpenLocalMixerClicked();
+    }
+    break;
+  }
   case MENU_IDENTIFIER::OPEN_MIXER: {
     if(taskBar->onOpenMixerClicked) {
       taskBar->onOpenMixerClicked();
@@ -121,6 +128,7 @@ void TaskbarComponent::buildPopup()
     break;
   }
   case ORLANDOVIOLS_STANDALONE: {
+    m.addItem(MENU_IDENTIFIER::OPEN_LOCAL_MIXER, TRANS("Open mixer"));
     m.addItem(MENU_IDENTIFIER::USE_DIGITALSTAGE,
               TRANS("Switch to Digital Stage..."));
     break;

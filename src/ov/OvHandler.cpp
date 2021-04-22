@@ -2,13 +2,14 @@
 #include "eventpp/utilities/argumentadapter.h"
 #include <JuceHeader.h>
 
-OvHandler::OvHandler(DigitalStage::Client* client_, const juce::File appDataDir)
+OvHandler::OvHandler(DigitalStage::Client* client_)
     : isRunning(false), client(client_)
 {
   auto uuid = getmacaddr();
   renderer.reset(new ov_render_tascar_t(uuid, 0));
-  renderer->set_runtime_folder(appDataDir.getFullPathName().toStdString());
-  mixer.reset(new OvMixer(appDataDir));
+  renderer->set_runtime_folder(
+      juce::File::getCurrentWorkingDirectory().getFullPathName().toStdString());
+  mixer.reset(new OvMixer());
 }
 
 void OvHandler::init()

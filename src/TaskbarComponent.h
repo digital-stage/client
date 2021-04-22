@@ -16,6 +16,7 @@ public:
   std::function<void()> onUseOrlandoViolsClicked;
   std::function<void()> onUseDigitalStageClicked;
   std::function<void()> onSettingsClicked;
+  std::function<void()> onOpenLocalMixerClicked;
 
 private:
   void buildPopup();

@@ -4,7 +4,7 @@
 
 class OvMixer {
 public:
-  OvMixer(const juce::File& appDataDir);
+  OvMixer();
   ~OvMixer();
 
   void start();

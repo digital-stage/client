@@ -20,9 +20,10 @@
   "ov-webmixer-win.exe"
 #endif
 
-OvMixer::OvMixer(const juce::File& appDataDir)
-    : webmixer(appDataDir.getChildFile("webmixer")), isInitializing(false),
-      quitRequested(false)
+OvMixer::OvMixer()
+    : webmixer(
+          juce::File::getCurrentWorkingDirectory().getChildFile("webmixer")),
+      isInitializing(false), quitRequested(false)
 {
 }
 
@@ -33,6 +34,7 @@ OvMixer::~OvMixer()
 
 void OvMixer::downloadAndStart()
 {
+  std::cout << "WEBMIXER: downloadAndStart()" << std::endl;
   // We don't wait for the download to finished
   if(!webmixer.existsAsFile()) {
     juce::URL* url = new juce::URL(OV_MIXER_URL);
@@ -44,11 +46,16 @@ void OvMixer::downloadAndStart()
     }
     webmixer.setExecutePermission(true);
   }
+  std::cout << "WEBMIXER: Creating child process" << std::endl;
   process.reset(new ChildProcess());
-  if(!process->start("./webmixer")) {
-    process = nullptr;
+  if(!process->start(
+         "./webmixer -r " +
+         juce::File::getCurrentWorkingDirectory().getFullPathName())) {
+    std::cout << "WEBMIXER: Could not start" << std::endl;
+    process.reset();
   }
   isInitializing = false;
+  std::cout << "WEBMIXER: RUNNING" << std::endl;
 }
 
 void OvMixer::start()
@@ -56,20 +63,23 @@ void OvMixer::start()
   if(!isInitializing && !process) {
     quitRequested = false;
     isInitializing = true;
+    std::cout << "WEBMIXER: is NOT running, so starting it" << std::endl;
     downloadThread.reset(new std::thread(&OvMixer::downloadAndStart, this));
   }
 }
 
 void OvMixer::stop()
 {
+  std::cout << "WEBMIXER: stop()" << std::endl;
   quitRequested = true;
-  if(process && process->isRunning()) {
-    std::cout << "Killing webmixer process" << std::endl;
+  if(process) {
+    std::cout << "WEBMIXER: is running, killing it" << std::endl;
     process->kill();
-    process = nullptr;
   }
-  if(downloadThread && isInitializing) {
+  process.reset();
+  if(downloadThread && downloadThread->joinable()) {
     std::cout << "Waiting for download thread to finish" << std::endl;
     downloadThread->join();
+    downloadThread.reset();
   }
 }

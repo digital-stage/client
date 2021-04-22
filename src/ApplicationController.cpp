@@ -23,8 +23,8 @@ ApplicationController::~ApplicationController()
 
 void ApplicationController::init()
 {
-  const juce::File appDataDir = getAppDataDir();
-  appDataDir.setAsCurrentWorkingDirectory();
+  // Change working directory (many depends on it)
+  getAppDataDir().setAsCurrentWorkingDirectory();
 
   apiClient.reset(new DigitalStage::Client(API_URL));
   audioDeviceManager.reset(new juce::AudioDeviceManager());
@@ -41,10 +41,9 @@ void ApplicationController::init()
 #if JUCE_LINUX || JUCE_MAC
   jackAudioController.reset(new JackAudioController());
   jackAudioController->setActive(true);
-  ovHandler.reset(new OvHandler(apiClient.get(), appDataDir));
+  ovHandler.reset(new OvHandler(apiClient.get()));
   ovHandler->init(); // This will start consuming events provided by the client
-  orlandoViolsClient.reset(new OrlandoViolsClient(
-      jackAudioController.get(), appDataDir.getFullPathName().toStdString()));
+  orlandoViolsClient.reset(new OrlandoViolsClient(jackAudioController.get()));
 #endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
@@ -62,6 +61,9 @@ void ApplicationController::init()
   // On unix systems the user can switch between orlandoviols and digitalstage
   taskbar->onUseDigitalStageClicked = [&]() { switchToDigitalStage(); };
   taskbar->onUseOrlandoViolsClicked = [&]() { switchToOrlandoViols(); };
+  taskbar->onOpenLocalMixerClicked = []() {
+    URL("http://localhost:8080").launchInDefaultBrowser();
+  };
 #endif
 #endif
   loginPane->onSignedIn = [&](juce::String token) {
