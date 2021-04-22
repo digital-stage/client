@@ -17,13 +17,15 @@ jobs:
         run: brew install xerces-c jack liblo libsndfile eigen boost gsl fftw libsamplerate cpprestsdk nlohmann-json openssl libsoundio
       - name: Running cmake
         env:
-          APPLE_CERT: "Apple Development: Tobias Hegemann (Tobias Hegemann)"
+          APPLE_CERT: "Apple Development: Tobias Hegemann (X3FUCE928U)"
           CMAKE_BUILD_TYPE: Release
-        run: 'cmake -DCMAKE_BUILD_TYPE=Release -DAPPLE_CERT="Apple Development: Tobias Hegemann (Tobias Hegemann)" .'
+        run: 'cmake -DCMAKE_BUILD_TYPE=Release -DAPPLE_CERT="Apple Development: Tobias Hegemann (X3FUCE928U)" .'
       - name: Building
         run: make
-      - name: Bundling
-        run: cpack
+      - name: Create macOS App Bundle
+        run:  make install
+      - name: Creating DMG
+        run: cpack -G DragNDrop
       - name: Publishing
         uses: svenstaro/upload-release-action@v2
         with:
