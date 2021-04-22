@@ -65,7 +65,8 @@ private:
     const std::string workingFolderPath =
         juce::File::getCurrentWorkingDirectory()
             .getFullPathName()
-            .toStdString();
+            .toStdString() +
+        "/";
     const juce::File zitaRootFolder =
         juce::File::getSpecialLocation(
             juce::File::SpecialLocationType::currentExecutableFile)

@@ -8,7 +8,8 @@ OvHandler::OvHandler(DigitalStage::Client* client_)
   auto uuid = getmacaddr();
   renderer.reset(new ov_render_tascar_t(uuid, 0));
   renderer->set_runtime_folder(
-      juce::File::getCurrentWorkingDirectory().getFullPathName().toStdString());
+      juce::File::getCurrentWorkingDirectory().getFullPathName().toStdString() +
+      "/");
   mixer.reset(new OvMixer());
 }
 
