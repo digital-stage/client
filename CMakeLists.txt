@@ -84,6 +84,9 @@ target_compile_definitions(DigitalStage
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)
+
+
 target_include_directories(DigitalStage
         PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/lib/libds/include
@@ -220,7 +223,7 @@ if(APPLE)
                 message(STATUS \"Fixing \${PLUGIN}\")
                 execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/\${PLUGIN}.dylib\")
             endforeach()
-            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"$<TARGET_FILE:DigitalStage>\" COMMENT \"Signing app bundle\")
+            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"$<TARGET_FILE:DigitalStage>\")
         ")
     else(APPLE_CERT)
         install(CODE "
@@ -235,4 +238,27 @@ if(APPLE)
     endif(APPLE_CERT)
 endif(APPLE)
 
-juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)
+
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://www.digital-stage.org")
+set(CPACK_PACKAGE_VENDOR "Digitale Bühne gGmbH")
+set(CPACK_PACKAGE_CONTACT "Tobias Hegemann <tobias.hegemann@digital-stage.org")
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+
+if(APPLE)
+    INSTALL(TARGETS DigitalStage
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION bin COMPONENT Runtime
+        RESOURCE DESTINATION assets COMPONENT Runtime
+    )
+    set(CPACK_DMG_VOLUME_NAME "InstallDigitalStage")
+    set(CPACK_PACKAGE_NAME "InstallDigitalStage")
+    set(CPACK_GENERATOR "DragNDrop")
+    set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/Packaging_DMGSetup.scpt)
+    set(CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/assets/DMGBackground.tif)
+    set(CPACK_SOURCE_STRIP_FILES "")
+    set(CPACK_STRIP_FILES "${CMAKE_CURRENT_BINARY_DIR}/DigitalStage_artefacts/${CMAKE_BUILD_TYPE}/DigitalStage.app")
+
+    #set(CPACK_COMPONENTS_ALL DIGITALSTAGE_APP)
+    include(CPack)
+endif(APPLE)
