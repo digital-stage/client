@@ -24,7 +24,7 @@ Open the DMG file and drag'n'drop the DigitalStage.app into your Applications fo
 
 Since the experimental client is not signed properly by Apple yet, you need to start it the first time by pressing the option key and right click on it, then select "Open":
 
-![alt Download](https://github.com/digital-stage/client/blob/main/doc/first-run.png?raw=true)
+![alt Download](https://github.com/digital-stage/client/blob/main/doc/first-open.png?raw=true)
 
 This will be only necessary on the first run after each installation. Later you can start it like any other application.
 
