@@ -1,7 +1,7 @@
 name: Build releases
 on:
   push:
-    branches: [ main ]
+    branches: [ main, development ]
 jobs:
   macos:
     runs-on: macos-10.15
@@ -31,7 +31,9 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: InstallDigitalStage*.dmg
-          tag: "Release"
+          tag: "Nightly"
+          body: "Fresh midnight build, experimental, unstable, but an future insight. Please use macOS 10.5+ and don't forget to install jack audio: https://jackaudio.org/downloads/"
+          prerelease: true
           overwrite: true
           file_glob: true
 
