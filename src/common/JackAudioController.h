@@ -14,7 +14,7 @@ public:
   {
     label.reset(new juce::Label(
         "infoLabel",
-        TRANS("Jack is not available. Please start it using QJackCtl")));
+        TRANS("Jack is not available. Please start it using QJackCtl.")));
     label->setSize(200, 100);
     setContentOwned(label.get(), true);
   }
