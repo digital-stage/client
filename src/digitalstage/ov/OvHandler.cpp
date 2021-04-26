@@ -1,6 +1,6 @@
 #include "OvHandler.h"
-#include <eventpp/utilities/argumentadapter.h>
 #include <JuceHeader.h>
+#include <eventpp/utilities/argumentadapter.h>
 
 OvHandler::OvHandler(DigitalStage::Client* client_)
     : isRunning(false), client(client_)
@@ -78,6 +78,16 @@ void OvHandler::init()
               [&](const DigitalStage::EventRemoteAudioTrackRemoved&,
                   const DigitalStage::Store&) {
                 std::cout << "TODO" << std::endl;
+              })));
+
+  client->appendListener(
+      DigitalStage::EventType::LOCAL_DEVICE_READY,
+      eventpp::argumentAdapter(
+          std::function<void(const DigitalStage::EventLocalDeviceReady&,
+                             const DigitalStage::Store&)>(
+              [&](const DigitalStage::EventLocalDeviceReady&,
+                  const DigitalStage::Store&) {
+                std::cout << "SEND SOUNDCARD OF JACK" << std::endl;
               })));
 }
 
