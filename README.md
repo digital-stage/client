@@ -8,7 +8,7 @@ Native client based on JUCE, api-client, libov and JammerNetz
 
 Download and install JACK Audio from https://jackaudio.org/downloads/
 
-### Download and install DigitalStage.app
+### Download and install DigitalStage.app and OrlandoViols.app
 
 #### Download
 
