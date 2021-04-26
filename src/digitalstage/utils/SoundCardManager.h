@@ -14,6 +14,12 @@ protected:
                               const DigitalStage::Store&);
 
 private:
-  __unused DigitalStage::Client* apiClient;
-  __unused juce::AudioDeviceManager* audioDeviceManager;
+#ifdef __GNUC__
+#define __unused
+#endif
+  DigitalStage::Client* apiClient;
+#ifdef __GNUC__
+#define __unused
+#endif
+  juce::AudioDeviceManager* audioDeviceManager;
 };
