@@ -1,4 +1,4 @@
-name: Build releases
+name: Build nighly for macOS
 on:
   push:
     branches: [ main, development ]

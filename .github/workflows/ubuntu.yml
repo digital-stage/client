@@ -1,0 +1,26 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ main, development ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch tags
+        run: git fetch --unshallow --tags
+      - name: Install submodules
+        run: git submodule update --init --recursive
+      - name: Install Dependencies
+        run: sudo apt update &&
+          sudo apt install --assume-yes git zita-njbridge liblo-dev nodejs libcurl4-openssl-dev build-essential libasound2-dev libeigen3-dev libfftw3-dev libfftw3-double3 libfftw3-single3 libgsl-dev libjack-jackd2-dev libltc-dev libmatio-dev libsndfile1-dev libsamplerate0-dev libboost-all-dev libxerces-c-dev libcpprest-dev nlohmann-json3-dev libsoundio-dev
+      - name: Running cmake
+        run: cmake -DCMAKE_BUILD_TYPE=Release
+      - name: Building
+        run: make
