@@ -1,5 +1,5 @@
 #include "OvHandler.h"
-#include "eventpp/utilities/argumentadapter.h"
+#include <eventpp/utilities/argumentadapter.h>
 #include <JuceHeader.h>
 
 OvHandler::OvHandler(DigitalStage::Client* client_)

@@ -14,6 +14,6 @@ protected:
                               const DigitalStage::Store&);
 
 private:
-  DigitalStage::Client* apiClient;
-  juce::AudioDeviceManager* audioDeviceManager;
+  __unused DigitalStage::Client* apiClient;
+  __unused juce::AudioDeviceManager* audioDeviceManager;
 };

@@ -1,4 +1,4 @@
-#include "../assets/utils.h"
+#include "../../assets/utils.h"
 #include "ApplicationController.h"
 #include <JuceHeader.h>
 
@@ -29,9 +29,7 @@ public:
 
     // Show splashscreen first
     juce::SplashScreen* splashScreen = new juce::SplashScreen(
-        ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
-    // juce::SplashScreen* splashScreen = new juce::SplashScreen(
-    // ProjectInfo::projectName, getImageFromAssets("splash.png"), true);
+        ProjectInfo::projectName, getImageFromAssets("orlandoviols/splash.png"), true);
     splashScreen->setVisible(true);
 
     // Init controller

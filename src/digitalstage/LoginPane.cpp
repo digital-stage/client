@@ -1,5 +1,5 @@
 #include "LoginPane.h"
-#include "../assets/utils.h"
+#include "../../assets/utils.h"
 #include <thread>
 
 void runAsync(std::function<void(void)> task,
@@ -17,7 +17,7 @@ void runAsync(std::function<void(void)> task,
 LoginPane::LoginPane()
 {
   authService.reset(new DigitalStage::AuthService(AUTH_URL));
-  logo.setImage(getImageFromAssets("logo-full@2x.png"));
+  logo.setImage(getImageFromAssets("digitalstage/logo-full@2x.png"));
   emailLabel.setText(TRANS("email"), dontSendNotification);
   passwordLabel.setText(TRANS("password"), dontSendNotification);
   loginButton.setButtonText(TRANS("login"));

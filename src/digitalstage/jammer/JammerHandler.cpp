@@ -1,5 +1,5 @@
 #include "JammerHandler.h"
-#include "eventpp/utilities/argumentadapter.h"
+#include <eventpp/utilities/argumentadapter.h>
 
 JammerHandler::JammerHandler(DigitalStage::Client* client_) : client(client_) {}
 

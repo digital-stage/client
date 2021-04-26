@@ -1,5 +1,5 @@
 #include "TaskbarComponent.h"
-#include "../assets/utils.h"
+#include "../../assets/utils.h"
 #include <iostream>
 
 enum MENU_IDENTIFIER {
@@ -7,18 +7,15 @@ enum MENU_IDENTIFIER {
   SIGN_UP = 2,
   OPEN_STAGE = 3,
   OPEN_MIXER = 4,
-  USE_DIGITALSTAGE = 5,
-  USE_ORLANDOVIOLS = 6,
-  SETTINGS = 7,
-  QUIT = 8,
-  OPEN_LOCAL_MIXER = 9
+  SETTINGS = 5,
+  QUIT = 6
 };
 
 TaskbarComponent::TaskbarComponent(ApplicationState initialState)
     : state(initialState)
 {
-  setIconImage(getImageFromAssets("icon.png"),
-               getImageFromAssets("icon@2x.png"));
+  setIconImage(getImageFromAssets("digitalstage/icon.png"),
+               getImageFromAssets("digitalstage/icon@2x.png"));
   setIconTooltip("Digital Stage");
 }
 
@@ -54,24 +51,6 @@ static void menuInvocationCallback(int chosenItemID, TaskbarComponent* taskBar)
   case MENU_IDENTIFIER::SIGN_OUT: {
     if(taskBar->onSignOutClicked) {
       taskBar->onSignOutClicked();
-    }
-    break;
-  }
-  case MENU_IDENTIFIER::USE_ORLANDOVIOLS: {
-    if(taskBar->onUseOrlandoViolsClicked) {
-      taskBar->onUseOrlandoViolsClicked();
-    }
-    break;
-  }
-  case MENU_IDENTIFIER::USE_DIGITALSTAGE: {
-    if(taskBar->onUseDigitalStageClicked) {
-      taskBar->onUseDigitalStageClicked();
-    }
-    break;
-  }
-  case MENU_IDENTIFIER::OPEN_LOCAL_MIXER: {
-    if(taskBar->onOpenLocalMixerClicked) {
-      taskBar->onOpenLocalMixerClicked();
     }
     break;
   }
@@ -123,14 +102,6 @@ void TaskbarComponent::buildPopup()
   case SIGNED_OUT: {
     m.addItem(MENU_IDENTIFIER::SIGN_UP, TRANS("Sign up"));
     m.addItem(MENU_IDENTIFIER::SETTINGS, TRANS("Settings"));
-    m.addItem(MENU_IDENTIFIER::USE_ORLANDOVIOLS,
-              TRANS("Switch to orlandoviols..."));
-    break;
-  }
-  case ORLANDOVIOLS_STANDALONE: {
-    m.addItem(MENU_IDENTIFIER::OPEN_LOCAL_MIXER, TRANS("Open mixer"));
-    m.addItem(MENU_IDENTIFIER::USE_DIGITALSTAGE,
-              TRANS("Switch to Digital Stage..."));
     break;
   }
   }

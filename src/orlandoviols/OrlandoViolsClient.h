@@ -1,12 +1,11 @@
 #pragma once
-#include "Client.h"
-#include "JackAudioController.h"
-#include "OvMixer.h"
+#include "../common/JackAudioController.h"
+#include "../common/OvMixer.h"
 #include <JuceHeader.h>
 #include <jack/jack.h>
 
-#include "../../lib/libov/src/ov_client_orlandoviols.h"
-#include "../../lib/libov/src/ov_render_tascar.h"
+#include <ov_client_orlandoviols.h>
+#include <ov_render_tascar.h>
 
 #ifndef ORLANDOVIOLS_FRONTEND_URL
 #define ORLANDOVIOLS_FRONTEND_URL "http://oldbox.orlandoviols.com"

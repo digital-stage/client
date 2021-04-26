@@ -1,5 +1,5 @@
 #include "ApplicationController.h"
-#include "eventpp/utilities/argumentadapter.h"
+#include <eventpp/utilities/argumentadapter.h>
 
 ApplicationController::ApplicationController()
 {
@@ -17,7 +17,6 @@ ApplicationController::~ApplicationController()
 #endif
 #if JUCE_LINUX || JUCE_MAC
   // ovController = nullptr;
-  // orlandoViolsController = nullptr;
 #endif
 }
 
@@ -43,7 +42,6 @@ void ApplicationController::init()
   jackAudioController->setActive(true);
   ovHandler.reset(new OvHandler(apiClient.get()));
   ovHandler->init(); // This will start consuming events provided by the client
-  orlandoViolsClient.reset(new OrlandoViolsClient(jackAudioController.get()));
 #endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
@@ -57,14 +55,6 @@ void ApplicationController::init()
   taskbar->onSignUpClicked = []() { URL(SIGNUP_URL).launchInDefaultBrowser(); };
   taskbar->onSignOutClicked = [&]() { signOut(); };
   taskbar->onSettingsClicked = [&]() { settingsWindow->setVisible(true); };
-#if JUCE_LINUX || JUCE_MAC
-  // On unix systems the user can switch between orlandoviols and digitalstage
-  taskbar->onUseDigitalStageClicked = [&]() { switchToDigitalStage(); };
-  taskbar->onUseOrlandoViolsClicked = [&]() { switchToOrlandoViols(); };
-  taskbar->onOpenLocalMixerClicked = []() {
-    URL("http://localhost:8080").launchInDefaultBrowser();
-  };
-#endif
 #endif
   loginPane->onSignedIn = [&](juce::String token) {
     loginWindow->setVisible(false);
@@ -122,21 +112,6 @@ void ApplicationController::signOut()
   store->getUserSettings()->save();
   taskbar->setApplicationState(ApplicationState::SIGNED_OUT);
 }
-
-#if JUCE_LINUX || JUCE_MAC
-void ApplicationController::switchToDigitalStage()
-{
-  orlandoViolsClient->stop();
-  loginWindow->setVisible(true);
-  taskbar->setApplicationState(ApplicationState::SIGNED_OUT);
-}
-void ApplicationController::switchToOrlandoViols()
-{
-  loginWindow->setVisible(false);
-  orlandoViolsClient->start();
-  taskbar->setApplicationState(ApplicationState::ORLANDOVIOLS_STANDALONE);
-}
-#endif
 
 void ApplicationController::handleException(const std::exception& e)
 {

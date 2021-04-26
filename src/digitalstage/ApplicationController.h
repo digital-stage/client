@@ -4,8 +4,8 @@
 #include "jammer/JammerHandler.h"
 #include "utils/SoundCardManager.h"
 #if JUCE_LINUX || JUCE_MAC
-#include "ov/OrlandoViolsClient.h"
 #include "ov/OvHandler.h"
+#include "../common/JackAudioController.h"
 #endif
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
 #include "TaskbarComponent.h"
@@ -40,10 +40,6 @@ private:
   const juce::File getAppDataDir() const;
   void handleSignIn(const juce::String token);
   void signOut();
-#if JUCE_LINUX || JUCE_MAC
-  void switchToOrlandoViols();
-  void switchToDigitalStage();
-#endif
   void handleException(const std::exception& e);
 
 private:
@@ -59,8 +55,6 @@ private:
   std::unique_ptr<JackAudioController> jackAudioController;
   // Event handler for OV
   std::unique_ptr<OvHandler> ovHandler;
-  // Client to use the orlandoviols frontend (without Digital Stage)
-  std::unique_ptr<OrlandoViolsClient> orlandoViolsClient;
 #endif
 
   // UI COMPONENTS

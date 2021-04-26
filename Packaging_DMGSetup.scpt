@@ -38,9 +38,10 @@ on run argv
         set sidebar width to 0
         set statusbar visible to false
         set toolbar visible to false
-        set the bounds to { 400, 100, 900, 465 }
-        set position of item "DigitalStage.app" to { 133, 200 }
-        set position of item "Applications" to { 378, 200 }
+        set the bounds to { 400, 100, 900, 665 }
+        set position of item "OrlandoViols.app" to { 133, 200 }
+        set position of item "DigitalStage.app" to { 133, 400 }
+        set position of item "Applications" to { 378, 300 }
       end tell
       update without registering applications
       delay 5

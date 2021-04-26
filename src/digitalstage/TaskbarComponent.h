@@ -13,10 +13,7 @@ public:
   std::function<void()> onSignOutClicked;
   std::function<void()> onOpenStageClicked;
   std::function<void()> onOpenMixerClicked;
-  std::function<void()> onUseOrlandoViolsClicked;
-  std::function<void()> onUseDigitalStageClicked;
   std::function<void()> onSettingsClicked;
-  std::function<void()> onOpenLocalMixerClicked;
 
 private:
   void buildPopup();
