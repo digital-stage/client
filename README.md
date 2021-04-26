@@ -16,7 +16,7 @@ Download the latest release or nightly build from https://github.com/digital-sta
 
 #### Install
 
-Open the DMG file and drag'n'drop the DigitalStage.app into your Applications folder.
+Open the DMG file and drag'n'drop the DigitalStage.app and OrlandoViols.app into your Applications folder.
 
 ![alt Download](https://github.com/digital-stage/client/blob/main/doc/download-release.png?raw=true)
 
@@ -30,21 +30,18 @@ This will be only necessary on the first run after each installation. Later you 
 
 #### Starting the JACK Audio server
 
-Our client needs access to the JACK Audio server.
+Our clients need access to the JACK Audio server.
 For this open the qjackctl Application you've installed before and start the JACK server by clicking on "Start".
 Ensure that the JACK server is running, otherwise you won't be able to use the client.
 
 ![alt Download](https://github.com/digital-stage/client/blob/main/doc/start-jack-audio.png?raw=true)
 
-#### Switching to orlandoviols
 
-We are currently combining live.digital-stage.org and the ov technology.
-But since it is not available yet, you'll need to use the orlandoviols frontend.
+#### Using box.orlandoviols.com
 
-To do so, click on the tray icon once you'v opened the app and select "Switch to orlandoviols..."
+Just start the OrlandoViols.app and enjoy using orlandoviols.com
 
-![alt Switch to orlandoviols.com](https://github.com/digital-stage/client/blob/main/doc/switch-to-orlandoviols.png?raw=true)
+#### Using digital-stage.org
 
-Now this client acts as a OVBox, but running on a mac :)
-
-For more information how to use orlandoviols.com, please refer to
+The DigitalStage.app is currently under active development.
+As soon as it is finished you'll read more here :)
