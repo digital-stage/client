@@ -187,28 +187,44 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\")
-        "
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app/Contents/Frameworks/\${PLUGIN}.dylib\")
+            endforeach()
+            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\")"
                 DESTINATION .
                 COMPONENT Runtime)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\")
-        "
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app/Contents/Frameworks/\${PLUGIN}.dylib\")
+            endforeach()
+            execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\")"
                 DESTINATION .
                 COMPONENT Runtime)
     else ()
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-        "
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app/Contents/Frameworks/\${PLUGIN}.dylib\")
+            endforeach()"
                 DESTINATION .
                 COMPONENT Runtime)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-        "
+            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            foreach (PLUGIN IN LISTS PLUGINS)
+                message(STATUS \"Fixing \${PLUGIN}\")
+                execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app/Contents/Frameworks/\${PLUGIN}.dylib\")
+            endforeach()"
                 DESTINATION .
                 COMPONENT Runtime)
     endif ()

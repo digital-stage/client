@@ -30,7 +30,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: DigitalStage*.tar.gz
+          file: DigitalStage-0.0.1-linux.tar.gz
           tag: "Nightly"
           body: "Fresh midnight build, experimental, unstable, but an future insight. Please use macOS 10.5+ and don't forget to install jack audio: https://jackaudio.org/downloads/"
           prerelease: true
