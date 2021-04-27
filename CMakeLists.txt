@@ -228,6 +228,7 @@ if (APPLE)
 endif (APPLE)
 
 if (LINUX)
+    include(GNUInstallDirs)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
     install(TARGETS DigitalStage OrlandoViols Tascar ${TASCAR_PLUGIN_LIBRARIES}
             BUNDLE DESTINATION .
