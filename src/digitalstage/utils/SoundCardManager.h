@@ -14,11 +14,11 @@ protected:
                               const DigitalStage::Store&);
 
 private:
-#ifdef __GNUC__
+#ifdef __clang__
   __unused
 #endif
       DigitalStage::Client* apiClient;
-#ifdef __GNUC__
+#ifdef __clang__
   __unused
 #endif
       juce::AudioDeviceManager* audioDeviceManager;
