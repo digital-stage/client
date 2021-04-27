@@ -4,6 +4,9 @@ project(DIGITALSTAGE_ORLANDOVIOLS_APP VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_policy(SET CMP0087 NEW)
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 
@@ -179,11 +182,6 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            #set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
-            #foreach (PLUGIN IN LISTS PLUGINS)
-                #message(STATUS \"Fixing \${PLUGIN}\")
-                #execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:OrlandoViols>/../Frameworks/\${PLUGIN}.dylib\")
-            #endforeach()
             execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\")
         "
                 DESTINATION .
@@ -191,11 +189,6 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            #set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
-            #foreach (PLUGIN IN LISTS PLUGINS)
-                #message(STATUS \"Fixing \${PLUGIN}\")
-                #execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/\${PLUGIN}.dylib\")
-            #endforeach()
             execute_process(COMMAND codesign --force --deep --sign \"${APPLE_CERT}\" \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\")
         "
                 DESTINATION .
@@ -204,23 +197,12 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            #set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
-            #foreach (PLUGIN IN LISTS PLUGINS)
-                #message(STATUS \"Fixing \${PLUGIN}\")
-                #execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:OrlandoViols>/../Frameworks/\${PLUGIN}.dylib\")
-            #endforeach()
         "
                 DESTINATION .
                 COMPONENT Runtime)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            #FIXUP_BUNDLE(\"$<TARGET_BUNDLE_DIR:DigitalStage>\" \"\" \"\")
-            #set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
-            #foreach (PLUGIN IN LISTS PLUGINS)
-                #message(STATUS \"Fixing \${PLUGIN}\")
-                #execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"$<TARGET_FILE_DIR:DigitalStage>/../Frameworks/\${PLUGIN}.dylib\")
-            #endforeach()
         "
                 DESTINATION .
                 COMPONENT Runtime)
@@ -244,3 +226,21 @@ if (APPLE)
     set(CPACK_COMPONENTS_ALL Runtime)
     include(CPack)
 endif (APPLE)
+
+if (LINUX)
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
+    install(TARGETS DigitalStage OrlandoViols Ov::Ov ${TASCAR_PLUGIN_LIBRARIES}
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib/static)
+    set(CPACK_GENERATOR "Archive")
+    set(CPACK_SOURCE_GENERATOR "TGZ")
+    set(CPACK_SOURCE_IGNORE_FILES
+            \\.git/
+            build/
+            ".*~$"
+            )
+    set(CPACK_VERBATIM_VARIABLES YES)
+    set(CPACK_ARCHIVE_FILE_NAME "DigitalStage-${CMAKE_PROJECT_VERSION}-linux")
+    include(CPack)
+endif (LINUX)

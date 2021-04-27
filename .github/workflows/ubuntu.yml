@@ -19,10 +19,20 @@ jobs:
         run: git submodule update --init --recursive
       - name: Install Dependencies
         run: sudo apt update &&
-          sudo apt install --assume-yes git zita-njbridge liblo-dev nodejs libcurl4-openssl-dev build-essential libasound2-dev libeigen3-dev libfftw3-dev libfftw3-double3 libfftw3-single3 libgsl-dev libjack-jackd2-dev libltc-dev libmatio-dev libsndfile1-dev libsamplerate0-dev libboost-all-dev libxerces-c-dev libcpprest-dev nlohmann-json3-dev libsoundio-dev
+          sudo apt install --assume-yes g++ zita-njbridge liblo-dev nodejs libcurl4-openssl-dev build-essential libasound2-dev libeigen3-dev libfftw3-dev libfftw3-double3 libfftw3-single3 libgsl-dev libjack-jackd2-dev libltc-dev libmatio-dev libsndfile1-dev libsamplerate0-dev libboost-all-dev libxerces-c-dev libcpprest-dev nlohmann-json3-dev libsoundio-dev libgtk-3-dev libfreetype6-dev libx11-dev libxinerama-dev libxrandr-dev libxcursor-dev mesa-common-dev libasound2-dev freeglut3-dev libxcomposite-dev libcurl4-openssl-dev
       - name: Running cmake
         run: cmake -DCMAKE_BUILD_TYPE=Release
       - name: Building
         run: make
       - name: Bundling
-        run: make install
+        run: cpack
+      - name: Publishing
+        uses: svenstaro/upload-release-action@v2
+          with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: DigitalStage*.tar.gz
+          tag: "Nightly"
+          body: "Fresh midnight build, experimental, unstable, but an future insight. Please use macOS 10.5+ and don't forget to install jack audio: https://jackaudio.org/downloads/"
+          prerelease: true
+          overwrite: true
+          file_glob: trued
