@@ -7,9 +7,10 @@ cmake_policy(SET CMP0087 NEW)
 if (UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif ()
-
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 
+# HOTFIXES
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixLinuxCpprest.cmake)
 if (APPLE)
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixAppleArchitecture.cmake)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
@@ -17,18 +18,21 @@ endif (APPLE)
 
 set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
 
+# GLOBAL DEFINTIONS
 add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
 add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
 add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
 add_compile_definitions(API_URL="ws://localhost:4000")
 
+# DEPENDENCIES
 add_subdirectory(lib/JUCE EXCLUDE_FROM_ALL)
 add_subdirectory(lib/libds EXCLUDE_FROM_ALL)
 if (UNIX)
     find_package(Jack REQUIRED)
 endif (UNIX)
 
+# ACTUAL APPS
 juce_add_gui_app(DigitalStage
         BUNDLE_ID org.digital-stage.client
         ICON_BIG ${CMAKE_CURRENT_LIST_DIR}/assets/digitalstage/appicon.png
