@@ -15,11 +15,11 @@ protected:
 
 private:
 #ifdef __GNUC__
-#define __unused
+  __unused
 #endif
-  DigitalStage::Client* apiClient;
+      DigitalStage::Client* apiClient;
 #ifdef __GNUC__
-#define __unused
+  __unused
 #endif
-  juce::AudioDeviceManager* audioDeviceManager;
+      juce::AudioDeviceManager* audioDeviceManager;
 };

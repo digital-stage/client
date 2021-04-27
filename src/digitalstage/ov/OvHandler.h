@@ -31,9 +31,9 @@ protected:
 
 private:
 #ifdef __GNUC__
-#define __unused
+  __unused
 #endif
-  bool onOvStage;
+      bool onOvStage;
   mutable std::recursive_mutex mutex;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OvHandler)
