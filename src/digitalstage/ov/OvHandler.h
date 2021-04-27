@@ -30,7 +30,7 @@ protected:
   std::unique_ptr<ov_render_tascar_t> renderer;
 
 private:
-#ifdef __GNUC__
+#ifdef __clang__
   __unused
 #endif
       bool onOvStage;
