@@ -14,7 +14,7 @@
 #include "LoginWindow.h"
 #include "SettingsWindow.h"
 #include <JuceHeader.h>
-#include <ds/Client.h>
+#include <DigitalStage/Api/Client.h>
 #include <string>
 
 #ifndef SIGNUP_URL
@@ -47,7 +47,7 @@ private:
   // Store to save api token and other usefull informations
   std::unique_ptr<ApplicationStore> store;
   // API client for receiving/sending events from the Digital Stage API server
-  std::shared_ptr<DigitalStage::Client> apiClient;
+  std::shared_ptr<DigitalStage::Api::Client> apiClient;
   std::unique_ptr<SoundCardManager> soundCardManager;
   // Event handler for jammer
   std::unique_ptr<JammerHandler> jammerHandler;

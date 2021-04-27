@@ -16,7 +16,7 @@ void runAsync(std::function<void(void)> task,
 
 LoginPane::LoginPane()
 {
-  authService.reset(new DigitalStage::AuthService(AUTH_URL));
+  authService.reset(new DigitalStage::Auth::AuthService(AUTH_URL));
   logo.setImage(getImageFromAssets("digitalstage/logo-full@2x.png"));
   emailLabel.setText(TRANS("email"), dontSendNotification);
   passwordLabel.setText(TRANS("password"), dontSendNotification);

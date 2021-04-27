@@ -25,7 +25,7 @@ void ApplicationController::init()
   // Change working directory (many depends on it)
   getAppDataDir().setAsCurrentWorkingDirectory();
 
-  apiClient.reset(new DigitalStage::Client(API_URL));
+  apiClient.reset(new DigitalStage::Api::Client(API_URL));
   audioDeviceManager.reset(new juce::AudioDeviceManager());
 
   soundCardManager.reset(
@@ -40,7 +40,7 @@ void ApplicationController::init()
 #if JUCE_LINUX || JUCE_MAC
   jackAudioController.reset(new JackAudioController());
   jackAudioController->setActive(true);
-  ovHandler.reset(new OvHandler(apiClient.get()));
+  ovHandler.reset(new OvHandler(jackAudioController.get(), apiClient.get()));
   ovHandler->init(); // This will start consuming events provided by the client
 #endif
 

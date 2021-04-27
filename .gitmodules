@@ -1,11 +1,11 @@
 [submodule "JUCE"]
-	path = lib/JUCE
+	path = JUCE
 	url = https://github.com/juce-framework/JUCE.git
 [submodule "api"]
-	path = lib/libds
+	path = libds
 	url = https://github.com/digital-stage/libds.git
 [submodule "libov"]
-	path = lib/libov
+	path = libov
 	url = https://github.com/gisogrimm/libov.git
 [submodule "zita-njbridge"]
 	path = zita-njbridge

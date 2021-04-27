@@ -1,23 +1,19 @@
 #pragma once
 #include <JuceHeader.h>
-#include <ds/Client.h>
+#include <DigitalStage/Api/Client.h>
 
 class SoundCardManager {
 
 public:
-  SoundCardManager(DigitalStage::Client* apiClient_,
+  SoundCardManager(DigitalStage::Api::Client* apiClient_,
                    juce::AudioDeviceManager* audioDeviceManager_);
   ~SoundCardManager();
-
-protected:
-  void handleLocalDeviceReady(const DigitalStage::EventLocalDeviceReady&,
-                              const DigitalStage::Store&);
 
 private:
 #ifdef __clang__
   __unused
 #endif
-      DigitalStage::Client* apiClient;
+      DigitalStage::Api::Client* apiClient;
 #ifdef __clang__
   __unused
 #endif

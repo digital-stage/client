@@ -1,40 +1,28 @@
-#pragma once
-#include "../../common/OvMixer.h"
-#include <JuceHeader.h>
-#include <ds/Client.h>
-#include <ds/Store.h>
-#include <ds/Types.h>
-#include <mutex>
-#include <optional>
+//
+// Created by Tobias Hegemann on 27.04.21.
+//
 
-#include <ov_render_tascar.h>
+#ifndef OVHANDLER_H_
+#define OVHANDLER_H_
+
+#include "../../common/JackAudioController.h"
+#include <DigitalStage/Api/Client.h>
+#include "../../common/OvMixer.h"
+
+using namespace DigitalStage::Api;
 
 class OvHandler {
 public:
-  OvHandler(DigitalStage::Client* client_);
+  OvHandler(JackAudioController* controller, Client* client_);
+  ~OvHandler();
+
   void init();
 
-protected:
-  void start();
-  void stop();
-
-  void syncLocalStageMember(const DigitalStage::Store& store);
-  // void reduceStageMember();
-  // void syncRemoteStageMembers();
-  // void syncStageMemberPosition(const std::string& stageMemberId);
-  // void syncStageMemberVolume(const std::string& stageMemberId);
-
-  bool isRunning;
-  DigitalStage::Client* client;
-  std::unique_ptr<OvMixer> mixer;
-  std::unique_ptr<ov_render_tascar_t> renderer;
-
 private:
-#ifdef __clang__
-  __unused
-#endif
-      bool onOvStage;
-  mutable std::recursive_mutex mutex;
-
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OvHandler)
+  void handleJackChanged(bool isAvailable, const JackAudioController::JackServerSettings& settings);
+  JackAudioController* controller;
+  Client* client;
+  std::unique_ptr<OvMixer> mixer;
 };
+
+#endif // OVHANDLER_H_

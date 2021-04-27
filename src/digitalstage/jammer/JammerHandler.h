@@ -1,13 +1,13 @@
 #pragma once
 #include <JuceHeader.h>
-#include <ds/Client.h>
+#include <DigitalStage/Api/Client.h>
 
 class JammerHandler {
 public:
-  JammerHandler(DigitalStage::Client* client_);
+  JammerHandler(DigitalStage::Api::Client* client_);
 
   void init();
 
 private:
-  DigitalStage::Client* client;
+  DigitalStage::Api::Client* client;
 };

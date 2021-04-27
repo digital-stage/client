@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include <ds/AuthService.h>
+#include <DigitalStage/Auth/AuthService.h>
 
 class LoginPane : public juce::Component, public juce::Button::Listener {
 public:
@@ -19,7 +19,7 @@ public:
   std::function<void(juce::String)> onSignedIn;
 
 private:
-  std::unique_ptr<DigitalStage::AuthService> authService;
+  std::unique_ptr<DigitalStage::Auth::AuthService> authService;
   juce::ImageComponent logo;
   juce::FlexBox container;
   juce::Label errorLabel;

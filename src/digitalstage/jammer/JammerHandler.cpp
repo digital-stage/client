@@ -1,17 +1,19 @@
 #include "JammerHandler.h"
 #include <eventpp/utilities/argumentadapter.h>
 
-JammerHandler::JammerHandler(DigitalStage::Client* client_) : client(client_) {}
+using namespace DigitalStage::Api;
+
+JammerHandler::JammerHandler(Client* client_) : client(client_) {}
 
 void JammerHandler::init()
 {
   client->appendListener(
-      DigitalStage::EventType::STAGE_JOINED,
+      EventType::STAGE_JOINED,
       eventpp::argumentAdapter(
-          std::function<void(const DigitalStage::EventStageJoined&,
-                             const DigitalStage::Store&)>(
-              [&](const DigitalStage::EventStageJoined& e,
-                  const DigitalStage::Store& s) {
+          std::function<void(const EventStageJoined&,
+                             const Store&)>(
+              [&](const EventStageJoined& e,
+                  const Store& s) {
                 auto stage = s.getStage(e.getStageId());
                 auto group = s.getGroup(e.getGroupId());
                 if(stage->audioType == "jammer") {
@@ -23,12 +25,12 @@ void JammerHandler::init()
               })));
 
   client->appendListener(
-      DigitalStage::EventType::STAGE_LEFT,
+      EventType::STAGE_LEFT,
       eventpp::argumentAdapter(
-          std::function<void(const DigitalStage::EventStageLeft&,
-                             const DigitalStage::Store&)>(
-              [&](const DigitalStage::EventStageLeft&,
-                  const DigitalStage::Store&) {
+          std::function<void(const EventStageLeft&,
+                             const Store&)>(
+              [&](const EventStageLeft&,
+                  const Store&) {
                 std::cout << "TODO: Shut down jammer client" << std::endl;
               })));
 }

@@ -27,8 +27,8 @@ add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
 add_compile_definitions(API_URL="ws://localhost:4000")
 
 # DEPENDENCIES
-add_subdirectory(lib/JUCE EXCLUDE_FROM_ALL)
-add_subdirectory(lib/libds EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/JUCE EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libds EXCLUDE_FROM_ALL)
 if (UNIX)
     find_package(Jack REQUIRED)
 endif (UNIX)
@@ -61,14 +61,15 @@ target_compile_definitions(DigitalStage
 juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)
 target_include_directories(DigitalStage
         PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/lib/libds/include
+        ${CMAKE_CURRENT_LIST_DIR}/libds/include
         )
 target_link_libraries(DigitalStage
         PRIVATE
         # GuiAppData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
         juce::juce_audio_utils
-        ds
+        DigitalStage::Api
+        DigitalStage::Auth
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
@@ -79,6 +80,7 @@ if (UNIX)
             PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
             )
     target_link_libraries(DigitalStage
             PUBLIC
@@ -107,12 +109,12 @@ if (UNIX)
     # OV
     ###
     message(STATUS "Using cmake to build OV")
-    add_subdirectory(lib/libov EXCLUDE_FROM_ALL)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libov EXCLUDE_FROM_ALL)
     target_compile_options(Ov PRIVATE -Wno-all)
     get_property(TASCAR_PLUGIN_LIBRARIES GLOBAL PROPERTY TASCAR_PLUGIN_LIBRARIES)
     target_include_directories(DigitalStage
             SYSTEM PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/lib/libov/src
+            ${CMAKE_CURRENT_LIST_DIR}/libov/src
             )
     target_link_libraries(DigitalStage
             PRIVATE
@@ -142,8 +144,8 @@ if (UNIX)
             JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:OrlandoViols,JUCE_VERSION>")
     juce_add_bundle_resources_directory(OrlandoViols ${CMAKE_CURRENT_LIST_DIR}/assets)
     target_include_directories(OrlandoViols
-            SYSTEM PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/lib/libov/src
+            SYSTEM PUBLIC
+            ${CMAKE_CURRENT_LIST_DIR}/libov/src
             SYSTEM PUBLIC
             ${JACK_INCLUDE_DIRS})
     target_link_libraries(OrlandoViols
@@ -159,6 +161,7 @@ if (UNIX)
     target_sources(OrlandoViols
             PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/orlandoviols/Main.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/orlandoviols/ApplicationController.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/orlandoviols/TaskbarComponent.cpp
@@ -179,8 +182,10 @@ endif (UNIX)
 if (APPLE)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
     INSTALL(TARGETS DigitalStage
+            RESOURCE DESTINATION . COMPONENT Assets
             BUNDLE DESTINATION . COMPONENT Runtime)
     INSTALL(TARGETS OrlandoViols
+            RESOURCE DESTINATION . COMPONENT Assets
             BUNDLE DESTINATION . COMPONENT Runtime)
     if (APPLE_CERT)
         message(STATUS "Signing app bundle is activated")

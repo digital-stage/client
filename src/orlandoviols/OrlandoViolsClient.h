@@ -7,6 +7,8 @@
 #include <ov_client_orlandoviols.h>
 #include <ov_render_tascar.h>
 
+#include <memory>
+
 #ifndef ORLANDOVIOLS_FRONTEND_URL
 #define ORLANDOVIOLS_FRONTEND_URL "http://oldbox.orlandoviols.com"
 #endif
@@ -16,9 +18,9 @@ public:
   OrlandoViolsClient(JackAudioController* controller)
       : jackAudioController(controller)
   {
-    mixer.reset(new OvMixer());
+    mixer = std::make_unique<OvMixer>();
     controller->addListener(
-        [&](bool isAvailable) { handleJackAvailabilityChanged(isAvailable); });
+        [&](bool isAvailable, const JackAudioController::JackServerSettings&) { handleJackAvailabilityChanged(isAvailable); });
   }
 
   inline void handleJackAvailabilityChanged(bool isAvailable)
