@@ -22,9 +22,7 @@ jobs:
         run: 'cmake -DCMAKE_BUILD_TYPE=Release -DAPPLE_CERT="Apple Development: Tobias Hegemann (X3FUCE928U)" .'
       - name: Building
         run: make
-      - name: Create macOS App Bundle
-        run:  make install
-      - name: Creating DMG
+      - name: Create macOS App Bundle and wrapping it with DMG
         run: cpack -G DragNDrop
       - name: Publishing
         uses: svenstaro/upload-release-action@v2
