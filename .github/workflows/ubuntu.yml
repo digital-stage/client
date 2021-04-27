@@ -28,7 +28,7 @@ jobs:
         run: cpack
       - name: Publishing
         uses: svenstaro/upload-release-action@v2
-          with:
+        with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: DigitalStage*.tar.gz
           tag: "Nightly"
