@@ -6,23 +6,31 @@
 #define OVHANDLER_H_
 
 #include "../../common/JackAudioController.h"
-#include <DigitalStage/Api/Client.h>
 #include "../../common/OvMixer.h"
+#include "OvController.h"
+#include "ov_controller_digitalstage_t.h"
+#include <DigitalStage/Api/Client.h>
+#include <ov_render_tascar.h>
 
 using namespace DigitalStage::Api;
 
 class OvHandler {
 public:
   OvHandler(JackAudioController* controller, Client* client_);
-  ~OvHandler();
 
   void init();
 
 private:
-  void handleJackChanged(bool isAvailable, const JackAudioController::JackServerSettings& settings);
-  JackAudioController* controller;
+  void handleReady(const Store* store);
+  void
+  handleJackChanged(bool isAvailable,
+                    const JackAudioController::JackServerSettings& settings);
+  JackAudioController* jackAudioController;
   Client* client;
+  std::unique_ptr<OvController> controller;
+  std::unique_ptr<ov_render_tascar_t> renderer;
   std::unique_ptr<OvMixer> mixer;
+  bool isRunning;
 };
 
 #endif // OVHANDLER_H_

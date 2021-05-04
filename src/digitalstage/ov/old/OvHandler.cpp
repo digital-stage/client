@@ -101,6 +101,11 @@ void OvHandler::start()
   // TODO: Check if jack is running
   mixer->start();
   isRunning = true;
+  if(jackAudioController->isAvailable()) {
+    startOv();
+  } else {
+    jackAudioController->setActive(true);
+  }
 }
 
 void OvHandler::stop()

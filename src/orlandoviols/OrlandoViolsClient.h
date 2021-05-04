@@ -15,12 +15,14 @@
 
 class OrlandoViolsClient {
 public:
-  OrlandoViolsClient(JackAudioController* controller)
-      : jackAudioController(controller)
+  explicit OrlandoViolsClient(JackAudioController* controller)
+      :  shouldRun(false), isRunning(false), jackAudioController(controller)
   {
     mixer = std::make_unique<OvMixer>();
     controller->addListener(
-        [&](bool isAvailable, const JackAudioController::JackServerSettings&) { handleJackAvailabilityChanged(isAvailable); });
+        [&](bool isAvailable, const JackAudioController::JackServerSettings&) {
+          handleJackAvailabilityChanged(isAvailable);
+        });
   }
 
   inline void handleJackAvailabilityChanged(bool isAvailable)
@@ -35,8 +37,6 @@ public:
       }
     }
   }
-
-  inline void handleJackIsUnavailable() {}
 
   ~OrlandoViolsClient() { stop(); }
 
@@ -60,9 +60,9 @@ public:
 private:
   inline void startOv()
   {
-    renderer.reset(new ov_render_tascar_t(getmacaddr(), 0));
-    client.reset(new ov_client_orlandoviols_t(*renderer.get(),
-                                              ORLANDOVIOLS_FRONTEND_URL));
+    renderer = std::make_unique<ov_render_tascar_t>(getmacaddr(), 0);
+    client = std::make_unique<ov_client_orlandoviols_t>(
+        *renderer, ORLANDOVIOLS_FRONTEND_URL);
     const std::string workingFolderPath =
         juce::File::getCurrentWorkingDirectory()
             .getFullPathName()

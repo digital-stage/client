@@ -78,7 +78,9 @@ target_link_libraries(DigitalStage
 if (UNIX)
     target_sources(DigitalStage
             PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvController.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/ov_client.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
             )
@@ -108,6 +110,8 @@ if (UNIX)
     ###
     # OV
     ###
+    add_compile_definitions(GUI)
+    add_compile_definitions(SHOWDEBUG)
     message(STATUS "Using cmake to build OV")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libov EXCLUDE_FROM_ALL)
     target_compile_options(Ov PRIVATE -Wno-all)

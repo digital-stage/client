@@ -37,10 +37,10 @@ public:
 
 private:
   void init();
-  const juce::File getAppDataDir() const;
-  void handleSignIn(const juce::String token);
+  static juce::File getAppDataDir() ;
+  void handleSignIn(const juce::String& token);
   void signOut();
-  void handleException(const std::exception& e);
+  static void handleException(const std::exception& e);
 
 private:
   std::unique_ptr<juce::AudioDeviceManager> audioDeviceManager;

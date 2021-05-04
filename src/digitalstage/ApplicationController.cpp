@@ -1,5 +1,6 @@
 #include "ApplicationController.h"
-#include <eventpp/utilities/argumentadapter.h>
+
+#include <memory>
 
 ApplicationController::ApplicationController()
 {
@@ -25,27 +26,27 @@ void ApplicationController::init()
   // Change working directory (many depends on it)
   getAppDataDir().setAsCurrentWorkingDirectory();
 
-  apiClient.reset(new DigitalStage::Api::Client(API_URL));
-  audioDeviceManager.reset(new juce::AudioDeviceManager());
+  apiClient = std::make_shared<DigitalStage::Api::Client>(API_URL);
+  audioDeviceManager = std::make_unique<juce::AudioDeviceManager>();
 
-  soundCardManager.reset(
-      new SoundCardManager(apiClient.get(), audioDeviceManager.get()));
+  soundCardManager = std::make_unique<SoundCardManager>(
+      apiClient.get(), audioDeviceManager.get());
 
-  store.reset(new ApplicationStore(ProjectInfo::projectName));
-  settingsWindow.reset(new SettingsWindow(*audioDeviceManager));
-  loginWindow.reset(new LoginWindow());
-  loginPane.reset(new LoginPane());
+  store = std::make_unique<ApplicationStore>(ProjectInfo::projectName);
+  settingsWindow = std::make_unique<SettingsWindow>(*audioDeviceManager);
+  loginWindow = std::make_unique<LoginWindow>();
+  loginPane = std::make_unique<LoginPane>();
   loginWindow->setResizeLimits(300, 400, 600, 1200);
   loginWindow->setContentOwned(loginPane.get(), true);
 #if JUCE_LINUX || JUCE_MAC
-  jackAudioController.reset(new JackAudioController());
+  jackAudioController = std::make_unique<JackAudioController>();
   jackAudioController->setActive(true);
-  ovHandler.reset(new OvHandler(jackAudioController.get(), apiClient.get()));
+  ovHandler = std::make_unique<OvHandler>(jackAudioController.get(), apiClient.get());
   ovHandler->init(); // This will start consuming events provided by the client
 #endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-  taskbar.reset(new TaskbarComponent(ApplicationState::SIGNED_OUT));
+  taskbar = std::make_unique<TaskbarComponent>(ApplicationState::SIGNED_OUT);
   taskbar->onOpenStageClicked = []() {
     URL(STAGE_URL).launchInDefaultBrowser();
   };
@@ -56,7 +57,7 @@ void ApplicationController::init()
   taskbar->onSignOutClicked = [&]() { signOut(); };
   taskbar->onSettingsClicked = [&]() { settingsWindow->setVisible(true); };
 #endif
-  loginPane->onSignedIn = [&](juce::String token) {
+  loginPane->onSignedIn = [&](const juce::String& token) {
     loginWindow->setVisible(false);
     handleSignIn(token);
   };
@@ -69,9 +70,9 @@ void ApplicationController::init()
   }
 }
 
-const juce::File ApplicationController::getAppDataDir() const
+juce::File ApplicationController::getAppDataDir()
 {
-  const juce::File folder =
+  juce::File folder =
       juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
 #if JUCE_MAC
           .getChildFile("Application Support")
@@ -80,13 +81,13 @@ const juce::File ApplicationController::getAppDataDir() const
   if(!folder.exists()) {
     folder.createDirectory();
   } else if(!folder.isDirectory()) {
-    throw new std::runtime_error("Could not create application data folder, "
+    throw std::runtime_error("Could not create application data folder, "
                                  "since it already exists as file");
   }
   return folder;
 }
 
-void ApplicationController::handleSignIn(const juce::String token)
+void ApplicationController::handleSignIn(const juce::String& token)
 {
   nlohmann::json initialDevice;
   initialDevice["uuid"] = "123456";

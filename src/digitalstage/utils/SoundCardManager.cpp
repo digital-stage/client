@@ -1,5 +1,4 @@
 #include "SoundCardManager.h"
-#include "eventpp/utilities/argumentadapter.h"
 
 
 SoundCardManager::SoundCardManager(

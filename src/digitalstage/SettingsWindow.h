@@ -7,6 +7,7 @@ public:
       : juce::AudioDeviceSelectorComponent(audioDeviceManager, 1, 256, 2, 2,
                                            false, false, true, true)
   {
+    setSize(300, 200);
   }
 };
 
