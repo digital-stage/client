@@ -16,13 +16,22 @@ public:
 
 protected:
   void onReady(const DigitalStage::Api::Store* store);
+
+  void onStageJoined(const DigitalStage::Types::ID_TYPE& stageId, const DigitalStage::Types::ID_TYPE& groupId, const DigitalStage::Api::Store* store);
+
+  void handleStageJoined(const DigitalStage::Types::Stage& stage, const DigitalStage::Api::Store* store);
+
+  void onStageLeft(const DigitalStage::Api::Store* store);
   /**
    * This handler might create local audio tracks for all activated channels
    * @param soundCard
    * @param store
    */
-  void handleSoundCardAdded(const DigitalStage::Types::soundcard_t soundCard,
+  void onSoundCardAdded(const DigitalStage::Types::SoundCard& soundCard,
                             const DigitalStage::Api::Store* store);
+
+  void setSoundCard(const DigitalStage::Types::SoundCard& soundCard,
+                    const DigitalStage::Api::Store* store);
   /**
    * This handler will create local audio tracks for all activated channels and
    * remove deprecated local audio tracks for all now disabled channels.
@@ -30,7 +39,7 @@ protected:
    * @param update
    * @param store
    */
-  void handleSoundCardChanged(const DigitalStage::Types::ID_TYPE& id,
+  void onSoundCardChanged(const DigitalStage::Types::ID_TYPE& id,
                               const nlohmann::json& update,
                               const DigitalStage::Api::Store* store);
 
@@ -41,7 +50,7 @@ protected:
    * @param track
    * @param store
    */
-  void handleRemoteAudioTrackAdded(
+  void onRemoteAudioTrackAdded(
       const DigitalStage::Types::remote_audio_track_t& track,
       const DigitalStage::Api::Store* store);
   /**
@@ -51,7 +60,7 @@ protected:
    * @param track
    * @param store
    */
-  void handleRemoteAudioTrackRemoved(
+  void onRemoteAudioTrackRemoved(
       const DigitalStage::Types::remote_audio_track_t& track,
       const DigitalStage::Api::Store* store);
 
@@ -115,7 +124,7 @@ private:
    * current activated input channels.
    * @param soundCard
    */
-  void syncInputChannels(DigitalStage::Types::soundcard_t soundCard,
+  void syncInputChannels(DigitalStage::Types::SoundCard soundCard,
                          const DigitalStage::Api::Store* store);
   /**
    * Helper method to fully synchronize the given stage member with TASCAR.

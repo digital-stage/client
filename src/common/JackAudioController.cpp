@@ -3,6 +3,8 @@
 //
 #include "JackAudioController.h"
 
+#include <memory>
+
 bool JackAudioController::isAvailable() const
 {
   return isAvailable_;
@@ -37,7 +39,7 @@ void JackAudioController::removeAllListeners()
 JackAudioController::JackAudioController()
     : isActive_(false), isAvailable_(false), shouldExit(false)
 {
-  window.reset(new JackNotAvailableWindow());
+  window = std::make_unique<JackNotAvailableWindow>();
 }
 JackAudioController::~JackAudioController()
 {
@@ -138,14 +140,16 @@ void JackAudioController::observeJack()
     onUnavailable();
   }
   while(!shouldExit && jackClient == nullptr) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     jackClient = jack_client_open("observe_jack", options, &status);
   }
-  // Now fetch input and output ports
-  scanJackInputPorts(jackClient);
-  scanJackOutputPorts(jackClient);
-  scanJackAudioSizes(jackClient);
-  jack_on_info_shutdown(jackClient, client_shutdown_cb, (void*)this);
+  if( jackClient != nullptr ) {
+    // Now fetch input and output ports
+    scanJackInputPorts(jackClient);
+    scanJackOutputPorts(jackClient);
+    scanJackAudioSizes(jackClient);
+    jack_on_info_shutdown(jackClient, client_shutdown_cb, (void*)this);
+  }
   onAvailable();
 }
 std::vector<std::string> JackAudioController::getInputPorts() const
