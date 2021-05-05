@@ -6,6 +6,7 @@
 #define OV_CLIENT_H_
 
 #include <DigitalStage/Api/Client.h>
+#include <DigitalStage/Types.h>
 #include <nlohmann/json.hpp>
 #include <ov_render_tascar.h>
 
@@ -21,7 +22,12 @@ protected:
 
   void handleStageJoined(const DigitalStage::Types::Stage& stage, const DigitalStage::Api::Store* store);
 
+  void onStageChanged(const DigitalStage::Types::ID_TYPE& stageId, const nlohmann::json& update, const DigitalStage::Api::Store* store);
+
   void onStageLeft(const DigitalStage::Api::Store* store);
+
+  void onDeviceChanged(const std::string& id, const nlohmann::json& update,
+                       const DigitalStage::Api::Store* store);
   /**
    * This handler might create local audio tracks for all activated channels
    * @param soundCard
@@ -136,6 +142,8 @@ private:
    */
   void syncStageMember(const DigitalStage::Types::ID_TYPE& id,
                        const DigitalStage::Api::Store* store);
+
+  void syncWholeStage(const DigitalStage::Api::Store* store);
 
   ov_render_tascar_t* renderer;
   DigitalStage::Api::Client* client;

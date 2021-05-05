@@ -94,6 +94,8 @@ void ApplicationController::handleSignIn(const juce::String& token)
   initialDevice["type"] = "ov";
   initialDevice["canAudio"] = true;
   initialDevice["canVideo"] = false;
+  initialDevice["sendAudio"] = true;
+  initialDevice["receiveAudio"] = true;
   // Get
   try {
     taskbar->setApplicationState(ApplicationState::OUTSIDE_STAGE);

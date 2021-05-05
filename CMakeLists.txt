@@ -20,11 +20,11 @@ endif (APPLE)
 set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
 
 # GLOBAL DEFINTIONS
-add_compile_definitions(SIGNUP_URL="https://single.dstage.org/account/signup")
-add_compile_definitions(STAGE_URL="https://single.dstage.org/stage")
-add_compile_definitions(MIXER_URL="https://single.dstage.org/mixer")
-add_compile_definitions(AUTH_URL="https://single.dstage.org/api/auth")
-add_compile_definitions(API_URL="ws://localhost:4000")
+add_compile_definitions(SIGNUP_URL="https://live.dstage.org/account/signup")
+add_compile_definitions(STAGE_URL="https://live.dstage.org/stage")
+add_compile_definitions(MIXER_URL="https://live.dstage.org/mixer")
+add_compile_definitions(AUTH_URL="https://auth.dstage.org")
+add_compile_definitions(API_URL="wss://api.dstage.org")
 
 # DEPENDENCIES
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/JUCE EXCLUDE_FROM_ALL)
@@ -153,10 +153,10 @@ if (UNIX)
             ${JACK_INCLUDE_DIRS})
     target_link_libraries(OrlandoViols
             PRIVATE
-            Ov::Ov
             ${TASCAR_PLUGIN_LIBRARIES}
             juce::juce_gui_extra
             PUBLIC
+            Ov::Ov
             ${JACK_LIBRARIES}
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
