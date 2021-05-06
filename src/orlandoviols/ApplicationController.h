@@ -15,8 +15,8 @@ public:
 
 private:
   void init();
-  const juce::File getAppDataDir() const;
-  void handleException(const std::exception& e);
+  static juce::File getAppDataDir() ;
+  static void handleException(const std::exception& e);
 
 private:
   std::unique_ptr<JackAudioController> jackAudioController;

@@ -1,4 +1,5 @@
 #include "ApplicationController.h"
+#include "../common/MacAddress.h"
 
 #include <memory>
 
@@ -89,15 +90,14 @@ juce::File ApplicationController::getAppDataDir()
 
 void ApplicationController::handleSignIn(const juce::String& token)
 {
-  nlohmann::json initialDevice;
-  initialDevice["uuid"] = "123456";
-  initialDevice["type"] = "ov";
-  initialDevice["canAudio"] = true;
-  initialDevice["canVideo"] = false;
-  initialDevice["sendAudio"] = true;
-  initialDevice["receiveAudio"] = true;
-  // Get
   try {
+    nlohmann::json initialDevice;
+    initialDevice["uuid"] = MacAddress::getMacAddress();
+    initialDevice["type"] = "ov";
+    initialDevice["canAudio"] = true;
+    initialDevice["canVideo"] = false;
+    initialDevice["sendAudio"] = true;
+    initialDevice["receiveAudio"] = true;
     taskbar->setApplicationState(ApplicationState::OUTSIDE_STAGE);
     apiClient->connect(token.toStdString(), initialDevice);
     store->getUserSettings()->setValue("token", token);

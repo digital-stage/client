@@ -44,6 +44,7 @@ juce_add_gui_app(DigitalStage
 juce_generate_juce_header(DigitalStage)
 target_sources(DigitalStage
         PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/common/MacAddress.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/Main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ApplicationController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/LoginPane.cpp

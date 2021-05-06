@@ -2,6 +2,8 @@
 #include "ApplicationController.h"
 #include <JuceHeader.h>
 
+#include <memory>
+
 //==============================================================================
 class Main : public juce::JUCEApplication {
 public:
@@ -28,12 +30,18 @@ public:
     juce::ignoreUnused(commandLine);
 
     // Show splashscreen first
-    juce::SplashScreen* splashScreen = new juce::SplashScreen(
+    auto* splashScreen = new juce::SplashScreen(
         ProjectInfo::projectName, getImageFromAssets("digitalstage/splash.png"), true);
     splashScreen->setVisible(true);
 
     // Init controller
-    controller.reset(new ApplicationController());
+    controller = std::make_unique<ApplicationController>();
+
+    // Get mac address
+    auto addresses = juce::MACAddress::getAllAddresses();
+    for(auto& address : addresses) {
+      std::cout << address.toString("").toStdString() << std::endl;
+    }
     
     splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(2), false);
   }

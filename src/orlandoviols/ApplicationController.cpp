@@ -1,5 +1,7 @@
 #include "ApplicationController.h"
 
+#include <memory>
+
 ApplicationController::ApplicationController()
 {
   init();
@@ -14,12 +16,12 @@ void ApplicationController::init()
   // Change working directory (many depends on it)
   getAppDataDir().setAsCurrentWorkingDirectory();
 
-  jackAudioController.reset(new JackAudioController());
+  jackAudioController = std::make_unique<JackAudioController>();
   jackAudioController->setActive(true);
-  orlandoViolsClient.reset(new OrlandoViolsClient(jackAudioController.get()));
+  orlandoViolsClient = std::make_unique<OrlandoViolsClient>(jackAudioController.get());
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
-  taskbar.reset(new TaskbarComponent());
+  taskbar = std::make_unique<TaskbarComponent>();
   taskbar->onOpenStageClicked = []() {
     URL("https://box.orlandoviols.com").launchInDefaultBrowser();
   };
@@ -31,7 +33,7 @@ void ApplicationController::init()
   orlandoViolsClient->start();
 }
 
-const juce::File ApplicationController::getAppDataDir() const
+juce::File ApplicationController::getAppDataDir()
 {
   const juce::File folder =
       juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
@@ -42,7 +44,7 @@ const juce::File ApplicationController::getAppDataDir() const
   if(!folder.exists()) {
     folder.createDirectory();
   } else if(!folder.isDirectory()) {
-    throw new std::runtime_error("Could not create application data folder, "
+    throw std::runtime_error("Could not create application data folder, "
                                  "since it already exists as file");
   }
   return folder;
