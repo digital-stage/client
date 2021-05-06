@@ -8,6 +8,8 @@ Native client based on JUCE, api-client, libov and JammerNetz
 
 Download and install JACK Audio from https://jackaudio.org/downloads/
 
+
+
 ### Download and install DigitalStage.app and OrlandoViols.app
 
 #### Download
@@ -45,3 +47,14 @@ Just start the OrlandoViols.app and enjoy using orlandoviols.com
 
 The DigitalStage.app is currently under active development.
 As soon as it is finished you'll read more here :)
+
+
+## Troubleshooting
+
+### MacOS
+ - No audio singal when using JACK audio or our client?
+   Try to reset the microphone privileges:
+      ```cmd
+      > tccutil reset Microphone
+      ```
+   
