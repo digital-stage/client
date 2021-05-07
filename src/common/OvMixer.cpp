@@ -1,6 +1,7 @@
 #include "OvMixer.h"
 #include <chrono>
 #include <iostream>
+#include <memory>
 
 /**
  * We have to download the ov mixer, since the codesign tool of macOS does not
@@ -47,7 +48,7 @@ void OvMixer::downloadAndStart()
     webmixer.setExecutePermission(true);
   }
   std::cout << "WEBMIXER: Creating child process" << std::endl;
-  process.reset(new ChildProcess());
+  process = std::make_unique<ChildProcess>();
   if(!process->start(
          "./webmixer -r " +
          juce::File::getCurrentWorkingDirectory().getFullPathName())) {

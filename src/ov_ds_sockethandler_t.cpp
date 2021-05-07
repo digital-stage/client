@@ -2,7 +2,7 @@
 // Created by Tobias Hegemann on 01.05.21.
 //
 
-#include "ov_client.h"
+#include "ov_ds_sockethandler_t.h"
 
 using namespace DigitalStage::Api;
 using namespace DigitalStage::Types;
@@ -12,34 +12,20 @@ bool isValidOvStage(const Stage& stage)
   return stage.ovIpv4 && stage.ovPort && stage.ovPin;
 }
 
-ov_client::ov_client(ov_render_tascar_t* renderer_,
-                     DigitalStage::Api::Client* client_)
+ov_ds_sockethandler_t::ov_ds_sockethandler_t(ov_render_base_t* renderer_,
+                                             DigitalStage::Api::Client* client_)
     : renderer(renderer_), client(client_), insideOvStage(false)
 {
-#ifdef SHOWDEBUG
-  std::cout << "ov_client::ov_client(...)" << std::endl;
-#endif
-  // Add handler
-  client->ready.connect(&ov_client::onReady, this);
-  client->deviceChanged.connect(&ov_client::onDeviceChanged, this);
-  client->stageJoined.connect(&ov_client::onStageJoined, this);
-  client->stageChanged.connect(&ov_client::onStageChanged, this);
-  client->stageLeft.connect(&ov_client::onStageLeft, this);
-  client->soundCardAdded.connect(&ov_client::onSoundCardAdded, this);
-  client->soundCardChanged.connect(&ov_client::onSoundCardChanged, this);
-  client->remoteAudioTrackAdded.connect(&ov_client::onRemoteAudioTrackAdded,
-                                        this);
-  client->remoteAudioTrackRemoved.connect(&ov_client::onRemoteAudioTrackRemoved,
-                                          this);
 }
-ov_client::~ov_client()
+ov_ds_sockethandler_t::~ov_ds_sockethandler_t()
 {
 #ifdef SHOWDEBUG
   std::cout << "ov_client::~ov_client" << std::endl;
 #endif
+  unlisten();
 }
 
-void ov_client::onReady(const Store* store)
+void ov_ds_sockethandler_t::onReady(const Store* store)
 {
 #ifdef SHOWDEBUG
   std::cout << "ov_client::onReady" << std::endl;
@@ -56,9 +42,9 @@ void ov_client::onReady(const Store* store)
     }
   }
 }
-void ov_client::onStageJoined(const DigitalStage::Types::ID_TYPE& stageId,
-                              const DigitalStage::Types::ID_TYPE&,
-                              const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::onStageJoined(
+    const DigitalStage::Types::ID_TYPE& stageId,
+    const DigitalStage::Types::ID_TYPE&, const DigitalStage::Api::Store* store)
 {
   if(store->isReady()) {
     auto stage = store->getStage(stageId);
@@ -71,8 +57,8 @@ void ov_client::onStageJoined(const DigitalStage::Types::ID_TYPE& stageId,
   }
 }
 
-void ov_client::handleStageJoined(const Stage& stage,
-                                  const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::handleStageJoined(
+    const Stage& stage, const DigitalStage::Api::Store* store)
 {
 #ifdef SHOWDEBUG
   std::cout << "ov_client::handleStageJoined" << std::endl;
@@ -109,9 +95,12 @@ void ov_client::handleStageJoined(const Stage& stage,
       stageSettings.roomsize.z = stage.height;
       stageSettings.absorption = stage.absorption;
       stageSettings.damping = stage.reflection;
-      stageSettings.reverbgain = localDevice->ovReverbGain ? *localDevice->ovReverbGain : 0.6;
-      stageSettings.renderreverb = localDevice->ovRenderReverb && *localDevice->ovRenderReverb;
-      stageSettings.renderism = localDevice->ovRenderISM && *localDevice->ovRenderISM;
+      stageSettings.reverbgain =
+          localDevice->ovReverbGain ? *localDevice->ovReverbGain : 0.6;
+      stageSettings.renderreverb =
+          localDevice->ovRenderReverb && *localDevice->ovRenderReverb;
+      stageSettings.renderism =
+          localDevice->ovRenderISM && *localDevice->ovRenderISM;
       std::vector<std::string> outputChannels;
       for(auto& channel : soundCard->outputChannels) {
         if(channel.second) {
@@ -123,9 +112,11 @@ void ov_client::handleStageJoined(const Stage& stage,
       stageSettings.outputport2 =
           outputChannels.size() > 1 ? "" : outputChannels[1];
       stageSettings.rawmode = localDevice->ovRawMode && *localDevice->ovRawMode;
-      stageSettings.rectype = localDevice->ovReceiverType ? *localDevice->ovReceiverType : "ortf";
+      stageSettings.rectype =
+          localDevice->ovReceiverType ? *localDevice->ovReceiverType : "ortf";
       stageSettings.secrec = 0.0;
-      stageSettings.egogain = localDevice->egoGain ? *localDevice->egoGain : 0.6;
+      stageSettings.egogain =
+          localDevice->egoGain ? *localDevice->egoGain : 0.6;
       stageSettings.mastergain = 1.0;
       stageSettings.peer2peer = localDevice->ovP2p && *localDevice->ovP2p;
       renderer->set_render_settings(stageSettings, localStageDevice->order);
@@ -137,8 +128,8 @@ void ov_client::handleStageJoined(const Stage& stage,
       }*/
       syncWholeStage(store);
 
-      //if(!renderer->is_audio_active())
-      //  renderer->start_audiobackend();
+      // if(!renderer->is_audio_active())
+      //   renderer->start_audiobackend();
       renderer->restart_session_if_needed();
       insideOvStage = true;
     }
@@ -148,9 +139,9 @@ void ov_client::handleStageJoined(const Stage& stage,
   }
 }
 
-void ov_client::onStageChanged(const DigitalStage::Types::ID_TYPE& stageId,
-                               const nlohmann::json& update,
-                               const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::onStageChanged(
+    const DigitalStage::Types::ID_TYPE& stageId, const nlohmann::json& update,
+    const DigitalStage::Api::Store* store)
 {
   if(insideOvStage) {
     auto currentStageId = store->getStageId();
@@ -172,7 +163,7 @@ void ov_client::onStageChanged(const DigitalStage::Types::ID_TYPE& stageId,
   }
 }
 
-void ov_client::onStageLeft(const DigitalStage::Api::Store*)
+void ov_ds_sockethandler_t::onStageLeft(const DigitalStage::Api::Store*)
 {
   if(insideOvStage) {
 #ifdef SHOWDEBUG
@@ -184,9 +175,9 @@ void ov_client::onStageLeft(const DigitalStage::Api::Store*)
   }
 }
 
-void ov_client::onDeviceChanged(const std::string&,
-                                const nlohmann::json& update,
-                                const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::onDeviceChanged(
+    const std::string&, const nlohmann::json& update,
+    const DigitalStage::Api::Store* store)
 {
   if(update.count("soundCardId")) {
     if(!insideOvStage) {
@@ -198,7 +189,7 @@ void ov_client::onDeviceChanged(const std::string&,
   }
 }
 
-void ov_client::onSoundCardAdded(
+void ov_ds_sockethandler_t::onSoundCardAdded(
     const DigitalStage::Types::SoundCard& soundCard,
     const DigitalStage::Api::Store* store)
 {
@@ -213,8 +204,9 @@ void ov_client::onSoundCardAdded(
   }
 }
 
-void ov_client::setSoundCard(const DigitalStage::Types::SoundCard& soundCard,
-                             const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::setSoundCard(
+    const DigitalStage::Types::SoundCard& soundCard,
+    const DigitalStage::Api::Store* store)
 {
   // Create or replace TASCAR audio configuration
   audio_device_t audioDevice;
@@ -237,9 +229,9 @@ void ov_client::setSoundCard(const DigitalStage::Types::SoundCard& soundCard,
   syncInputChannels(soundCard, store);
 }
 
-void ov_client::onSoundCardChanged(const DigitalStage::Types::ID_TYPE& id,
-                                   const json& update,
-                                   const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::onSoundCardChanged(
+    const DigitalStage::Types::ID_TYPE& id, const json& update,
+    const DigitalStage::Api::Store* store)
 {
   if(insideOvStage) {
 #ifdef SHOWDEBUG
@@ -267,35 +259,36 @@ void ov_client::onSoundCardChanged(const DigitalStage::Types::ID_TYPE& id,
   }
 }
 
-void ov_client::onRemoteAudioTrackAdded(
-    const DigitalStage::Types::remote_audio_track_t&,
+void ov_ds_sockethandler_t::onRemoteAudioTrackAdded(
+    const DigitalStage::Types::AudioTrack&,
     const DigitalStage::Api::Store* store)
 {
   if(insideOvStage) {
 #ifdef SHOWDEBUG
     std::cout << "ov_client::onRemoteAudioTrackAdded" << std::endl;
 #endif
-    //syncStageMember(track.stageMemberId, store);
+    // syncStageMember(track.stageMemberId, store);
     syncWholeStage(store);
 
     renderer->restart_session_if_needed();
   }
 }
 
-void ov_client::onRemoteAudioTrackRemoved(
-    const DigitalStage::Types::remote_audio_track_t&,
+void ov_ds_sockethandler_t::onRemoteAudioTrackRemoved(
+    const DigitalStage::Types::AudioTrack&,
     const DigitalStage::Api::Store* store)
 {
   if(insideOvStage) {
 #ifdef SHOWDEBUG
     std::cout << "ov_client::onRemoteAudioTrackRemoved" << std::endl;
 #endif
-    //syncStageMember(track.stageMemberId, store);
+    // syncStageMember(track.stageMemberId, store);
     syncWholeStage(store);
   }
 }
 
-void ov_client::syncInputChannels(SoundCard soundCard, const Store* store)
+void ov_ds_sockethandler_t::syncInputChannels(SoundCard soundCard,
+                                              const Store* store)
 {
 #ifdef SHOWDEBUG
   std::cout << "ov_client::syncInputChannels" << std::endl;
@@ -308,12 +301,12 @@ void ov_client::syncInputChannels(SoundCard soundCard, const Store* store)
               << std::endl;
     return;
   }
-  auto localAudioTracks = store->getLocalAudioTracks();
+  auto audioTracks = store->getAudioTracks();
   if(soundCard.inputChannels.empty()) {
     // Remove all local audio tracks related to this device
-    for(auto& localAudioTrack : localAudioTracks) {
-      if(localAudioTrack.deviceId == localDeviceId) {
-        client->send(SendEvents::REMOVE_LOCAL_AUDIO_TRACK, localAudioTrack._id);
+    for(auto& audioTrack : audioTracks) {
+      if(audioTrack.deviceId == localDeviceId) {
+        client->send(SendEvents::REMOVE_AUDIO_TRACK, audioTrack._id);
       }
     }
   } else {
@@ -321,37 +314,37 @@ void ov_client::syncInputChannels(SoundCard soundCard, const Store* store)
     for(auto& channel : soundCard.inputChannels) {
       if(channel.second) {
         // Lookup local audio track
-        if(std::none_of(
-               localAudioTracks.begin(), localAudioTracks.end(),
-               [channel, localDeviceId](const local_audio_track_t& track) {
-                 return track.deviceId == localDeviceId &&
-                        track.ovSourcePort == channel.first;
-               })) {
+        if(std::none_of(audioTracks.begin(), audioTracks.end(),
+                        [channel, localDeviceId](const AudioTrack& track) {
+                          return track.deviceId == localDeviceId &&
+                                 track.ovSourcePort == channel.first;
+                        })) {
           // Create local audio track
           nlohmann::json payload = {{"type", "ov"},
                                     {"ovSourcePort", channel.first}};
-          client->send(SendEvents::CREATE_LOCAL_AUDIO_TRACK, payload);
+          client->send(SendEvents::CREATE_AUDIO_TRACK, payload);
         }
       }
     }
     // Clean up deprecated tracks
-    for(auto& localAudioTrack : localAudioTracks) {
-      if(localAudioTrack.ovSourcePort &&
-         localAudioTrack.deviceId == localDeviceId) {
-        std::cout << "Checking " << localAudioTrack._id << std::endl;
-        if(soundCard.inputChannels.count(*localAudioTrack.ovSourcePort) == 0 ||
-           !soundCard.inputChannels.at(*localAudioTrack.ovSourcePort)) {
-          std::cout << "Channel is gone " << localAudioTrack._id << std::endl;
-          client->send(SendEvents::REMOVE_LOCAL_AUDIO_TRACK,
-                       localAudioTrack._id);
+    for(auto& audioTrack : audioTracks) {
+      if(audioTrack.ovSourcePort &&
+          audioTrack.deviceId == localDeviceId) {
+        std::cout << "Checking " << audioTrack._id << std::endl;
+        if(soundCard.inputChannels.count(*audioTrack.ovSourcePort) == 0 ||
+           !soundCard.inputChannels.at(*audioTrack.ovSourcePort)) {
+          std::cout << "Channel is gone " << audioTrack._id << std::endl;
+          client->send(SendEvents::REMOVE_AUDIO_TRACK,
+                       audioTrack._id);
         }
       }
     }
   }
 }
 
-void ov_client::syncStageMember(const DigitalStage::Types::ID_TYPE& id,
-                                const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::syncStageMember(
+    const DigitalStage::Types::ID_TYPE& id,
+    const DigitalStage::Api::Store* store)
 {
   try {
     auto stageMember = store->getStageMember(id);
@@ -364,7 +357,8 @@ void ov_client::syncStageMember(const DigitalStage::Types::ID_TYPE& id,
     if(!user)
       throw std::runtime_error("Could not find user " + stageMember->userId);
 #ifdef SHOWDEBUG
-    std::cout << "ov_client::syncStageMember(" << user->name << ")" << std::endl;
+    std::cout << "ov_client::syncStageMember(" << user->name << ")"
+              << std::endl;
 #endif
     auto stageDevices = store->getStageDevicesByStageMember(id);
     for(auto& stageDevice : stageDevices) {
@@ -372,12 +366,12 @@ void ov_client::syncStageMember(const DigitalStage::Types::ID_TYPE& id,
       stage_device.id = stageDevice.order;
       stage_device.label = user->name;
       stage_device.senderjitter =
-          *localDevice
-              ->ovSenderJitter; // TODO: use StageDevice instead of local device?
+          *localDevice->ovSenderJitter; // TODO: use StageDevice instead of
+                                        // local device?
       stage_device.receiverjitter =
           *localDevice->ovReceiverJitter; // TODO: use StageDevice instead of
       std::vector<device_channel_t> device_channels;
-      auto tracks = store->getRemoteAudioTracksByStageDevice(stageDevice._id);
+      auto tracks = store->getAudioTracksByStageDevice(stageDevice._id);
       for(auto& track : tracks) {
         if(track.type == "ov") {
           device_channel_t device_channel;
@@ -395,7 +389,7 @@ void ov_client::syncStageMember(const DigitalStage::Types::ID_TYPE& id,
 
       // TODO: REPLACE WITH DATA MODEL
       stage_device.position = {0, 0, 0};
-      stage_device.orientation = {0,0,0};
+      stage_device.orientation = {0, 0, 0};
       stage_device.mute = false;
 
       stage_device.sendlocal = true;
@@ -408,12 +402,14 @@ void ov_client::syncStageMember(const DigitalStage::Types::ID_TYPE& id,
         renderer->add_stage_device(stage_device);
       }
     }
-  } catch(std::exception& exception) {
+  }
+  catch(std::exception& exception) {
     std::cerr << "Internal error: " << exception.what() << std::endl;
   }
 }
 
-void ov_client::syncWholeStage(const DigitalStage::Api::Store* store)
+void ov_ds_sockethandler_t::syncWholeStage(
+    const DigitalStage::Api::Store* store)
 {
   try {
     auto stageDevices = store->getStageDevices();
@@ -430,12 +426,12 @@ void ov_client::syncWholeStage(const DigitalStage::Api::Store* store)
       stage_device.id = stageDevice.order;
       stage_device.label = user->name;
       stage_device.senderjitter =
-          *localDevice
-              ->ovSenderJitter; // TODO: use StageDevice instead of local device?
+          *localDevice->ovSenderJitter; // TODO: use StageDevice instead of
+                                        // local device?
       stage_device.receiverjitter =
           *localDevice->ovReceiverJitter; // TODO: use StageDevice instead of
       std::vector<device_channel_t> device_channels;
-      auto tracks = store->getRemoteAudioTracksByStageDevice(stageDevice._id);
+      auto tracks = store->getAudioTracksByStageDevice(stageDevice._id);
       for(auto& track : tracks) {
         if(track.type == "ov") {
           device_channel_t device_channel;
@@ -453,7 +449,7 @@ void ov_client::syncWholeStage(const DigitalStage::Api::Store* store)
 
       // TODO: REPLACE WITH DATA MODEL
       stage_device.position = {0, 0, 0};
-      stage_device.orientation = {0,0,0};
+      stage_device.orientation = {0, 0, 0};
       stage_device.mute = false;
 
       stage_device.sendlocal = true;
@@ -465,7 +461,50 @@ void ov_client::syncWholeStage(const DigitalStage::Api::Store* store)
       }
     }
     renderer->set_stage(stage_devices);
-  } catch(std::exception& exception) {
+  }
+  catch(std::exception& exception) {
     std::cerr << "Internal error: " << exception.what() << std::endl;
+  }
+}
+
+void ov_ds_sockethandler_t::listen()
+{
+  // Add handler
+  client->ready.connect(&ov_ds_sockethandler_t::onReady, this);
+  client->deviceChanged.connect(&ov_ds_sockethandler_t::onDeviceChanged, this);
+  client->stageJoined.connect(&ov_ds_sockethandler_t::onStageJoined, this);
+  client->stageChanged.connect(&ov_ds_sockethandler_t::onStageChanged, this);
+  client->stageLeft.connect(&ov_ds_sockethandler_t::onStageLeft, this);
+  client->soundCardAdded.connect(&ov_ds_sockethandler_t::onSoundCardAdded,
+                                 this);
+  client->soundCardChanged.connect(&ov_ds_sockethandler_t::onSoundCardChanged,
+                                   this);
+  client->audioTrackAdded.connect(
+      &ov_ds_sockethandler_t::onRemoteAudioTrackAdded, this);
+  client->audioTrackRemoved.connect(
+      &ov_ds_sockethandler_t::onRemoteAudioTrackRemoved, this);
+}
+
+void ov_ds_sockethandler_t::unlisten()
+{
+  // Remove handler
+  client->ready.disconnect(&ov_ds_sockethandler_t::onReady, this);
+  client->deviceChanged.disconnect(&ov_ds_sockethandler_t::onDeviceChanged,
+                                   this);
+  client->stageJoined.disconnect(&ov_ds_sockethandler_t::onStageJoined, this);
+  client->stageChanged.disconnect(&ov_ds_sockethandler_t::onStageChanged, this);
+  client->stageLeft.disconnect(&ov_ds_sockethandler_t::onStageLeft, this);
+  client->soundCardAdded.disconnect(&ov_ds_sockethandler_t::onSoundCardAdded,
+                                    this);
+  client->soundCardChanged.disconnect(
+      &ov_ds_sockethandler_t::onSoundCardChanged, this);
+  client->audioTrackAdded.disconnect(
+      &ov_ds_sockethandler_t::onRemoteAudioTrackAdded, this);
+  client->audioTrackRemoved.disconnect(
+      &ov_ds_sockethandler_t::onRemoteAudioTrackRemoved, this);
+
+  if(renderer) {
+    renderer->clear_stage();
+    renderer->stop_audiobackend();
   }
 }

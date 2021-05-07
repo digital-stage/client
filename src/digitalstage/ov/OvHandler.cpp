@@ -3,7 +3,7 @@
 //
 
 #include "OvHandler.h"
-#include "ov_controller_digitalstage_t.h"
+#include "../../ov_ds_sockethandler_t.h"
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -37,7 +37,7 @@ OvHandler::OvHandler(JackAudioController* controller_, Client* client_)
           .getParentDirectory();
   renderer->set_zita_path(zitaRootFolder.getFullPathName().toStdString() + "/");
   renderer->set_runtime_folder(workingFolderPath);
-  controller = std::make_unique<ov_client>(renderer.get(), client);
+  controller = std::make_unique<ov_ds_sockethandler_t>(renderer.get(), client);
 }
 
 void OvHandler::init()
@@ -94,17 +94,18 @@ void OvHandler::handleReady(const Store* store)
   if(!localDevice) {
     throw std::runtime_error("Internal error: no local device available");
   }
-  client->send(
-      "set-sound-card", payload, [&, localDevice](const nlohmann::json& result) {
-        // Expecting (error: string | null, id: string)
-        // Step 2
-        // Assure that sound card is selected
-        const std::string soundCardId = result[1];
-        nlohmann::json update = {{"_id", localDevice->_id},
-                                 {"soundCardId", soundCardId},
-                                 {"availableSoundCardIds", {soundCardId}}};
-        client->send("change-device", update);
-      });
+  client->send("set-sound-card", payload,
+               [&, localDevice](const nlohmann::json& result) {
+                 // Expecting (error: string | null, id: string)
+                 // Step 2
+                 // Assure that sound card is selected
+                 const std::string soundCardId = result[1];
+                 nlohmann::json update = {
+                     {"_id", localDevice->_id},
+                     {"soundCardId", soundCardId},
+                     {"availableSoundCardIds", {soundCardId}}};
+                 client->send("change-device", update);
+               });
 }
 
 void OvHandler::handleJackChanged(
@@ -114,13 +115,13 @@ void OvHandler::handleJackChanged(
     if(!isRunning) {
       std::cout << "STARTING OV" << std::endl;
       mixer->start();
-      //controller->start();
+      // controller->start();
       isRunning = true;
     }
   } else if(isRunning) {
     std::cout << "STOPPING OV" << std::endl;
     mixer->stop();
-    //controller->stop();
+    // controller->stop();
     isRunning = false;
   }
 }

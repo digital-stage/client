@@ -7,7 +7,7 @@
 
 #include "../../common/JackAudioController.h"
 #include "../../common/OvMixer.h"
-#include "ov_client.h"
+#include "../../ov_ds_sockethandler_t.h"
 #include <DigitalStage/Api/Client.h>
 #include <ov_render_tascar.h>
 
@@ -26,7 +26,7 @@ private:
                     const JackAudioController::JackServerSettings& settings);
   JackAudioController* jackAudioController;
   Client* client;
-  std::unique_ptr<ov_client> controller;
+  std::unique_ptr<ov_ds_sockethandler_t> controller;
   std::unique_ptr<ov_render_tascar_t> renderer;
   std::unique_ptr<OvMixer> mixer;
   bool isRunning;

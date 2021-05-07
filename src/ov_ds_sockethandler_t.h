@@ -2,18 +2,22 @@
 // Created by Tobias Hegemann on 01.05.21.
 //
 
-#ifndef OV_CLIENT_H_
-#define OV_CLIENT_H_
+#ifndef OV_DS_SOCKETHANDLER_H_
+#define OV_DS_SOCKETHANDLER_H_
 
 #include <DigitalStage/Api/Client.h>
 #include <DigitalStage/Types.h>
 #include <nlohmann/json.hpp>
 #include <ov_render_tascar.h>
 
-class ov_client {
+class ov_ds_sockethandler_t {
 public:
-  ov_client(ov_render_tascar_t* renderer_, DigitalStage::Api::Client* client_);
-  ~ov_client();
+  ov_ds_sockethandler_t(ov_render_base_t* renderer_, DigitalStage::Api::Client* client_);
+  ~ov_ds_sockethandler_t();
+
+  void listen();
+
+  void unlisten();
 
 protected:
   void onReady(const DigitalStage::Api::Store* store);
@@ -57,7 +61,7 @@ protected:
    * @param store
    */
   void onRemoteAudioTrackAdded(
-      const DigitalStage::Types::remote_audio_track_t& track,
+      const DigitalStage::Types::AudioTrack& track,
       const DigitalStage::Api::Store* store);
   /**
    * This handler will sync TASCAR with the stage member of the added track.
@@ -67,7 +71,7 @@ protected:
    * @param store
    */
   void onRemoteAudioTrackRemoved(
-      const DigitalStage::Types::remote_audio_track_t& track,
+      const DigitalStage::Types::AudioTrack& track,
       const DigitalStage::Api::Store* store);
 
   // The following methods will respond to changes of positions and volumes
@@ -145,9 +149,9 @@ private:
 
   void syncWholeStage(const DigitalStage::Api::Store* store);
 
-  ov_render_tascar_t* renderer;
+  ov_render_base_t* renderer;
   DigitalStage::Api::Client* client;
   bool insideOvStage;
 };
 
-#endif // OV_CLIENT_H_
+#endif // OV_DS_SOCKETHANDLER_H_

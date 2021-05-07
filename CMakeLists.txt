@@ -79,10 +79,10 @@ target_link_libraries(DigitalStage
 if (UNIX)
     target_sources(DigitalStage
             PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/ov_client.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_ds_sockethandler_t.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
             )
     target_link_libraries(DigitalStage
             PUBLIC
@@ -180,6 +180,32 @@ if (UNIX)
             COMMAND cp $<TARGET_FILE_DIR:zita-j2n>/zita-j2n
             $<TARGET_FILE_DIR:OrlandoViols>
             COMMENT "Copying zita-j2n" VERBATIM)
+endif (UNIX)
+
+if (UNIX)
+    # STANDALONE CLIENT (for ovbox later)
+    add_executable(myovclient ${CMAKE_CURRENT_SOURCE_DIR}/src/cli.cpp)
+    target_sources(myovclient
+            PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_ds_sockethandler_t.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_client_digitalstage_t.cpp
+            )
+    target_include_directories(myovclient
+            PRIVATE
+            ${CMAKE_CURRENT_LIST_DIR}/libds/include)
+    target_include_directories(myovclient
+            PUBLIC
+            ${JACK_INCLUDE_DIRS})
+    target_include_directories(myovclient
+            SYSTEM PUBLIC
+            ${CMAKE_CURRENT_LIST_DIR}/libov/src)
+    target_link_libraries(myovclient
+            PUBLIC
+            DigitalStageApi
+            DigitalStageAuth
+            ${TASCAR_PLUGIN_LIBRARIES}
+            Ov::Ov
+            ${JACK_LIBRARIES})
 endif (UNIX)
 
 
