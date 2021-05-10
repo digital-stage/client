@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(DIGITALSTAGE_ORLANDOVIOLS_APP VERSION 0.0.1)
+
+
+##
+## CONFIGURATION
+##
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_policy(SET CMP0087 NEW)
@@ -8,37 +13,44 @@ if (UNIX AND NOT APPLE)
     add_compile_options(-Wno-cast-align)
     set(LINUX TRUE)
 endif ()
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
-
-# HOTFIXES
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixLinuxCpprest.cmake)
-if (APPLE)
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/FixAppleArchitecture.cmake)
-    #set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
-endif (APPLE)
-
-set(COMPILE_OV_WITH_CMAKE ON CACHE BOOL "Use cmake to configure and build OV")
-
-# GLOBAL DEFINTIONS
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 add_compile_definitions(SIGNUP_URL="https://live.dstage.org/account/signup")
 add_compile_definitions(STAGE_URL="https://live.dstage.org/stage")
 add_compile_definitions(MIXER_URL="https://live.dstage.org/mixer")
 add_compile_definitions(AUTH_URL="https://auth.dstage.org")
 add_compile_definitions(API_URL="wss://api.dstage.org")
 
-# DEPENDENCIES
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/JUCE EXCLUDE_FROM_ALL)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libds EXCLUDE_FROM_ALL)
+
+##
+## DEPENDENCIES
+##
+# Hotfixes
+if (UNIX AND NOT APPLE)
+    include(${PROJECT_SOURCE_DIR}/cmake/FixLinuxCpprest.cmake)
+endif (UNIX AND NOT APPLE)
+if (APPLE)
+    include(${PROJECT_SOURCE_DIR}/cmake/FixAppleArchitecture.cmake)
+endif (APPLE)
+add_subdirectory(${PROJECT_SOURCE_DIR}/JUCE EXCLUDE_FROM_ALL)
 if (UNIX)
     find_package(Jack REQUIRED)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/libov EXCLUDE_FROM_ALL)
+    target_compile_definitions(Ov PUBLIC GUI)
+    target_compile_definitions(Ov PUBLIC SHOWDEBUG)
+    get_property(OV_PUBLIC_PLUGIN_LIBRARIES GLOBAL PROPERTY OV_PUBLIC_PLUGIN_LIBRARIES)
+    add_subdirectory(zita-njbridge EXCLUDE_FROM_ALL)
 endif (UNIX)
 
-# ACTUAL APPS
+
+##
+## TARGET
+## create target and add include path
+##
+# DigitalStage Client (with ov optional)
 juce_add_gui_app(DigitalStage
         BUNDLE_ID org.digital-stage.client
-        ICON_BIG ${CMAKE_CURRENT_LIST_DIR}/assets/digitalstage/appicon.png
+        ICON_BIG ${PROJECT_SOURCE_DIR}/assets/digitalstage/appicon.png
         NEEDS_CURL TRUE
-
         COMPANY_NAME "Digital Stage gGmbH"
         PRODUCT_NAME "DigitalStage")
 juce_generate_juce_header(DigitalStage)
@@ -50,20 +62,22 @@ target_sources(DigitalStage
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/LoginPane.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/TaskbarComponent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/jammer/JammerHandler.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/utils/SoundCardManager.cpp
-        )
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/utils/SoundCardManager.cpp)
+if (UNIX)
+    target_sources(DigitalStage
+            PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
+            )
+endif (UNIX)
 target_compile_definitions(DigitalStage
         PRIVATE
-        # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_gui_app` call
         JUCE_USE_CURL=1     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:DigitalStage,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:DigitalStage,JUCE_VERSION>")
-juce_add_bundle_resources_directory(DigitalStage ${CMAKE_CURRENT_LIST_DIR}/assets)
-target_include_directories(DigitalStage
-        PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/libds/include
-        )
+juce_add_bundle_resources_directory(DigitalStage ${PROJECT_SOURCE_DIR}/assets)
 target_link_libraries(DigitalStage
         PRIVATE
         # GuiAppData            # If we'd created a binary data target, we'd link to it here
@@ -75,65 +89,22 @@ target_link_libraries(DigitalStage
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
-
 if (UNIX)
-    target_sources(DigitalStage
-            PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_ds_sockethandler_t.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/OvMixer.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/common/JackAudioController.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/digitalstage/ov/OvHandler.cpp
-            )
     target_link_libraries(DigitalStage
             PUBLIC
+            Ov::Ov
+            ${OV_PUBLIC_PLUGIN_LIBRARIES}
             ${JACK_LIBRARIES})
     target_include_directories(DigitalStage
             SYSTEM PUBLIC
             ${JACK_INCLUDE_DIRS})
-
-    ###
-    # ZITA
-    ###
-    add_subdirectory(zita-njbridge ${PROJECT_BINARY_DIR}/zita EXCLUDE_FROM_ALL)
-    # Copy zita binaries into the application bundle
-    add_custom_command(TARGET DigitalStage
-            POST_BUILD
-            COMMAND cp $<TARGET_FILE_DIR:zita-n2j>/zita-n2j
-            $<TARGET_FILE_DIR:DigitalStage>
-            COMMENT "Copying zita-n2j" VERBATIM)
-    add_custom_command(TARGET DigitalStage
-            POST_BUILD
-            COMMAND cp $<TARGET_FILE_DIR:zita-j2n>/zita-j2n
-            $<TARGET_FILE_DIR:DigitalStage>
-            COMMENT "Copying zita-j2n" VERBATIM)
-
-    ###
-    # OV
-    ###
-    add_compile_definitions(GUI)
-    add_compile_definitions(SHOWDEBUG)
-    message(STATUS "Using cmake to build OV")
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libov EXCLUDE_FROM_ALL)
-    target_compile_options(Ov PRIVATE -Wno-all)
-    get_property(TASCAR_PLUGIN_LIBRARIES GLOBAL PROPERTY TASCAR_PLUGIN_LIBRARIES)
-    target_include_directories(DigitalStage
-            SYSTEM PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/libov/src
-            )
-    target_link_libraries(DigitalStage
-            PRIVATE
-            Ov::Ov
-            ${TASCAR_PLUGIN_LIBRARIES}
-            )
 endif (UNIX)
 
+# OrlandoViols Client (only on unix systems)
 if (UNIX)
-    ###
-    # OrlandoViols Client
-    ###
     juce_add_gui_app(OrlandoViols
             BUNDLE_ID com.orlandoviols.client
-            ICON_BIG ${CMAKE_CURRENT_LIST_DIR}/assets/orlandoviols/appicon.png
+            ICON_BIG ${PROJECT_SOURCE_DIR}/assets/orlandoviols/appicon.png
             NEEDS_CURL TRUE
 
             COMPANY_NAME "Digital Stage gGmbH"
@@ -146,18 +117,16 @@ if (UNIX)
             JUCE_USE_CURL=1     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
             JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:OrlandoViols,JUCE_PRODUCT_NAME>"
             JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:OrlandoViols,JUCE_VERSION>")
-    juce_add_bundle_resources_directory(OrlandoViols ${CMAKE_CURRENT_LIST_DIR}/assets)
+    juce_add_bundle_resources_directory(OrlandoViols ${PROJECT_SOURCE_DIR}/assets)
     target_include_directories(OrlandoViols
-            SYSTEM PUBLIC
-            ${CMAKE_CURRENT_LIST_DIR}/libov/src
             SYSTEM PUBLIC
             ${JACK_INCLUDE_DIRS})
     target_link_libraries(OrlandoViols
             PRIVATE
-            ${TASCAR_PLUGIN_LIBRARIES}
             juce::juce_gui_extra
             PUBLIC
             Ov::Ov
+            ${OV_PUBLIC_PLUGIN_LIBRARIES}
             ${JACK_LIBRARIES}
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
@@ -170,6 +139,39 @@ if (UNIX)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/orlandoviols/ApplicationController.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/orlandoviols/TaskbarComponent.cpp
             )
+endif (UNIX)
+
+if (UNIX)
+    # ov CLI - analogoue to ovclient (only on unix systems)
+    add_executable(ovclient ${CMAKE_CURRENT_SOURCE_DIR}/src/cli.cpp)
+    target_include_directories(ovclient
+            SYSTEM PUBLIC
+            ${JACK_INCLUDE_DIRS})
+    target_link_libraries(ovclient
+            PUBLIC
+            DigitalStageApi
+            DigitalStageAuth
+            Ov::Ov
+            ${OV_PUBLIC_PLUGIN_LIBRARIES}
+            ${JACK_LIBRARIES})
+endif (UNIX)
+
+
+##
+## INSTALL
+## install header files, generate and install cmake config files for find_package()
+##
+if (UNIX)
+    add_custom_command(TARGET DigitalStage
+            POST_BUILD
+            COMMAND cp $<TARGET_FILE_DIR:zita-n2j>/zita-n2j
+            $<TARGET_FILE_DIR:DigitalStage>
+            COMMENT "Copying zita-n2j" VERBATIM)
+    add_custom_command(TARGET DigitalStage
+            POST_BUILD
+            COMMAND cp $<TARGET_FILE_DIR:zita-j2n>/zita-j2n
+            $<TARGET_FILE_DIR:DigitalStage>
+            COMMENT "Copying zita-j2n" VERBATIM)
     add_custom_command(TARGET OrlandoViols
             POST_BUILD
             COMMAND cp $<TARGET_FILE_DIR:zita-n2j>/zita-n2j
@@ -181,33 +183,6 @@ if (UNIX)
             $<TARGET_FILE_DIR:OrlandoViols>
             COMMENT "Copying zita-j2n" VERBATIM)
 endif (UNIX)
-
-if (UNIX)
-    # STANDALONE CLIENT (for ovbox later)
-    add_executable(myovclient ${CMAKE_CURRENT_SOURCE_DIR}/src/cli.cpp)
-    target_sources(myovclient
-            PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_ds_sockethandler_t.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/ov_client_digitalstage_t.cpp
-            )
-    target_include_directories(myovclient
-            PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/libds/include)
-    target_include_directories(myovclient
-            PUBLIC
-            ${JACK_INCLUDE_DIRS})
-    target_include_directories(myovclient
-            SYSTEM PUBLIC
-            ${CMAKE_CURRENT_LIST_DIR}/libov/src)
-    target_link_libraries(myovclient
-            PUBLIC
-            DigitalStageApi
-            DigitalStageAuth
-            ${TASCAR_PLUGIN_LIBRARIES}
-            Ov::Ov
-            ${JACK_LIBRARIES})
-endif (UNIX)
-
 
 if (APPLE)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
@@ -222,7 +197,7 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            set(PLUGINS ${OV_PUBLIC_PLUGIN_LIBRARIES})
             foreach (PLUGIN IN LISTS PLUGINS)
                 message(STATUS \"Fixing \${PLUGIN}\")
                 execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app/Contents/Frameworks/\${PLUGIN}.dylib\")
@@ -233,7 +208,7 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            set(PLUGINS ${OV_PUBLIC_PLUGIN_LIBRARIES})
             foreach (PLUGIN IN LISTS PLUGINS)
                 message(STATUS \"Fixing \${PLUGIN}\")
                 execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app/Contents/Frameworks/\${PLUGIN}.dylib\")
@@ -245,7 +220,7 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            set(PLUGINS ${OV_PUBLIC_PLUGIN_LIBRARIES})
             foreach (PLUGIN IN LISTS PLUGINS)
                 message(STATUS \"Fixing \${PLUGIN}\")
                 execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/OrlandoViols.app/Contents/Frameworks/\${PLUGIN}.dylib\")
@@ -255,7 +230,7 @@ if (APPLE)
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app\" \"\" \"$<TARGET_FILE_DIR:Tascar::Tascar>/../plugins\")
-            set(PLUGINS ${TASCAR_PLUGIN_LIBRARIES})
+            set(PLUGINS ${OV_PUBLIC_PLUGIN_LIBRARIES})
             foreach (PLUGIN IN LISTS PLUGINS)
                 message(STATUS \"Fixing \${PLUGIN}\")
                 execute_process(COMMAND ${CMAKE_INSTALL_NAME_TOOL} -id \${PLUGIN}.dylib \"\${CMAKE_INSTALL_PREFIX}/DigitalStage.app/Contents/Frameworks/\${PLUGIN}.dylib\")
@@ -286,7 +261,7 @@ endif (APPLE)
 if (LINUX)
     include(GNUInstallDirs)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
-    install(TARGETS DigitalStage OrlandoViols Tascar ${TASCAR_PLUGIN_LIBRARIES}
+    install(TARGETS DigitalStage OrlandoViols Tascar ${OV_PUBLIC_PLUGIN_LIBRARIES}
             BUNDLE DESTINATION .
             RUNTIME DESTINATION .
             RESOURCE DESTINATION assets

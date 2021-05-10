@@ -7,8 +7,8 @@
 
 #include "../../common/JackAudioController.h"
 #include "../../common/OvMixer.h"
-#include "../../ov_ds_sockethandler_t.h"
 #include <DigitalStage/Api/Client.h>
+#include <ov_ds_sockethandler_t.h>
 #include <ov_render_tascar.h>
 
 using namespace DigitalStage::Api;
@@ -16,6 +16,7 @@ using namespace DigitalStage::Api;
 class OvHandler {
 public:
   OvHandler(JackAudioController* controller, Client* client_);
+  ~OvHandler();
 
   void init();
 

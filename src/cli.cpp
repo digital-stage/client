@@ -1,4 +1,4 @@
-#include "ov_client_digitalstage_t.h"
+#include <ov_client_digitalstage_t.h>
 #include <DigitalStage/Auth/AuthService.h>
 
 static bool quit_app(false);
@@ -20,7 +20,7 @@ int main(int, char*[])
 
   ov_render_tascar_t renderer(getmacaddr(), 0);
 
-  auto* client = new ov_client_digitalstage_t(renderer, jwt);
+  auto* client = new ov_client_digitalstage_t(renderer, API_URL, jwt);
 
   std::cout << "starting services\n";
   client->start_service();
