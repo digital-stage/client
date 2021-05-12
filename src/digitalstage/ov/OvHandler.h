@@ -18,13 +18,17 @@ public:
   OvHandler(JackAudioController* controller, Client* client_);
   ~OvHandler();
 
-  void init();
-
-private:
-  void handleReady(const Store* store);
+protected:
+  void onReady(const Store* store);
   void
   handleJackChanged(bool isAvailable,
                     const JackAudioController::JackServerSettings& settings);
+
+private:
+  void sendSoundCard();
+  void start();
+  void stop();
+
   JackAudioController* jackAudioController;
   Client* client;
   std::unique_ptr<ov_ds_sockethandler_t> controller;

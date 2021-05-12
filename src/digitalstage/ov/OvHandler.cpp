@@ -37,28 +37,41 @@ OvHandler::OvHandler(JackAudioController* controller_, Client* client_)
   renderer->set_zita_path(zitaRootFolder.getFullPathName().toStdString() + "/");
   renderer->set_runtime_folder(workingFolderPath);
   controller = std::make_unique<ov_ds_sockethandler_t>(renderer.get(), client);
-  controller->enable();
-}
-
-OvHandler::~OvHandler() {
-  controller->disable();
-}
-
-void OvHandler::init()
-{
-  // JACK AUDIO SERVER LISTENER
   jackAudioController->addListener(
       [&](bool isAvailable,
           const JackAudioController::JackServerSettings& settings) {
         handleJackChanged(isAvailable, settings);
       });
 
-  client->ready.connect(&OvHandler::handleReady, this);
+  client->ready.connect(&OvHandler::onReady, this);
 }
 
-void OvHandler::handleReady(const Store* store)
+OvHandler::~OvHandler()
 {
-  auto localDevice = store->getLocalDevice();
+  controller->disable();
+}
+
+void OvHandler::onReady(const Store*)
+{
+  if(jackAudioController->isAvailable()) {
+    start();
+  }
+}
+
+void OvHandler::handleJackChanged(
+    bool isAvailable, const JackAudioController::JackServerSettings&)
+{
+  std::cout << "OvHandler::handleJackChanged" << std::endl;
+  if(isAvailable) {
+    start();
+  } else {
+    stop();
+  }
+}
+
+void OvHandler::sendSoundCard()
+{
+  auto localDevice = client->getStore()->getLocalDevice();
   if(!localDevice) {
     throw std::runtime_error("Internal error: no local device available");
   }
@@ -85,7 +98,8 @@ void OvHandler::handleReady(const Store* store)
   payload["sampleRates"] = {sampleRate};
   payload["periodSize"] = bufferSize;
 
-  auto soundCard = store->getSoundCardByDeviceAndUUID(localDevice->_id, "manual");
+  auto soundCard = client->getStore()->getSoundCardByDeviceAndUUID(
+      localDevice->_id, "manual");
   if(soundCard) {
     if(!comparePorts(soundCard->inputChannels, inputPorts)) {
       payload["inputChannels"] = inputPorts;
@@ -97,31 +111,35 @@ void OvHandler::handleReady(const Store* store)
     payload["inputChannels"] = inputPorts;
     payload["outputChannels"] = outputPorts;
   }
-
   client->send(DigitalStage::Api::SendEvents::SET_SOUND_CARD, payload,
                [&, localDevice](const nlohmann::json& result) {
                  // Expecting (error: string | null, id: string)
                  // Assure that sound card is selected
                  const std::string soundCardId = result[1];
-                 nlohmann::json update = {
-                     {"_id", localDevice->_id},
-                     {"soundCardId", soundCardId}};
-                 client->send(DigitalStage::Api::SendEvents::CHANGE_DEVICE, update);
+                 nlohmann::json update = {{"_id", localDevice->_id},
+                                          {"soundCardId", soundCardId}};
+                 client->send(DigitalStage::Api::SendEvents::CHANGE_DEVICE,
+                              update);
                });
 }
 
-void OvHandler::handleJackChanged(
-    bool isAvailable, const JackAudioController::JackServerSettings&)
+void OvHandler::start()
 {
-  if(isAvailable) {
-    if(!isRunning) {
-      std::cout << "STARTING OV" << std::endl;
-      mixer->start();
-      isRunning = true;
-    }
-  } else if(isRunning) {
+  if(!isRunning && client->getStore()->isReady()) {
+    std::cout << "STARTING OV" << std::endl;
+    sendSoundCard();
+    controller->enable();
+    mixer->start();
+    isRunning = true;
+  }
+}
+
+void OvHandler::stop()
+{
+  if(!isRunning) {
     std::cout << "STOPPING OV" << std::endl;
     mixer->stop();
+    controller->disable();
     isRunning = false;
   }
 }

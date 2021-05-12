@@ -43,7 +43,6 @@ void ApplicationController::init()
   jackAudioController = std::make_unique<JackAudioController>();
   jackAudioController->setActive(true);
   ovHandler = std::make_unique<OvHandler>(jackAudioController.get(), apiClient.get());
-  ovHandler->init(); // This will start consuming events provided by the client
 #endif
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_MAC
