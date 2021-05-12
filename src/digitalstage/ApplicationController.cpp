@@ -89,6 +89,17 @@ juce::File ApplicationController::getAppDataDir()
 
 void ApplicationController::handleSignIn(const juce::String& token)
 {
+<<<<<<< Updated upstream
+=======
+  nlohmann::json initialDevice;
+  initialDevice["uuid"] = getMacAddress().toStdString();
+  initialDevice["type"] = "ov";
+  initialDevice["canAudio"] = true;
+  initialDevice["canVideo"] = false;
+  initialDevice["sendAudio"] = true;
+  initialDevice["receiveAudio"] = true;
+  // Get
+>>>>>>> Stashed changes
   try {
     nlohmann::json initialDevice;
     initialDevice["uuid"] = MacAddress::getMacAddress();

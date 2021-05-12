@@ -41,6 +41,7 @@ private:
   void handleSignIn(const juce::String& token);
   void signOut();
   static void handleException(const std::exception& e);
+  static juce::String getMacAddress();
 
 private:
   std::unique_ptr<juce::AudioDeviceManager> audioDeviceManager;
