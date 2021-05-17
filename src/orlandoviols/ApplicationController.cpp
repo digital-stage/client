@@ -1,4 +1,5 @@
 #include "ApplicationController.h"
+#include "../digitalstage/ApplicationController.h"
 
 #include <memory>
 
@@ -55,4 +56,11 @@ void ApplicationController::handleException(const std::exception& e)
   std::cerr << e.what() << std::endl;
   juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
                                          TRANS("error"), e.what());
+}
+juce::String ApplicationController::getMacAddress() {
+  auto macAddresses = juce::MACAddress::getAllAddresses();
+  for(auto& macAddress : macAddresses) {
+    std::cout << macAddress.toString().toStdString() << std::endl;
+  }
+  return macAddresses[0];
 }
